@@ -23,58 +23,36 @@ func (TodoController) Index(c echo.Context) error {
 	todoList, err := models.GetTodoList()
 
 	if err != nil {
-		return helpers.HandleResponse(c, helpers.Response{
-			Message: err.Error(),
-			Status:  http.StatusInternalServerError,
-		})
+		return helpers.ErrorServer(err.Error())
 	}
 
-	return helpers.HandleResponse(c, helpers.Response{
-		Message: "Get todo list success",
-		Status:  http.StatusOK,
-		Result:  todoList,
-	})
+	return helpers.Ok(c, http.StatusOK, "Get todo list success", todoList)
 }
 
-/*
-* @description Create todo
-*
-* @param {echo.Context} c
-*
-* @return error
- */
+// @description Create todo
+// @param 		is echo.Context
+// @return 		error
 func (TodoController) Store(c echo.Context) error {
-	// Simple validation for payload
-	form, isNotValid := helpers.HandleJSON(c)
-	title, ok := form["title"].(string)
+	form := new(models.TodoForm)
 
-	if (isNotValid && !ok) || title == "" {
-		return helpers.HandleResponse(c, helpers.Response{
-			Message: "Please fill all forms",
-			Status:  http.StatusUnprocessableEntity,
-			Result: map[string]string{
-				"title": "Title is required",
-			},
-		})
+	if err := c.Bind(form); err != nil {
+		return helpers.ErrorBadRequest(err.Error())
 	}
 
-	todo, err := models.CreateTodo(models.ITodoForm{
-		Title:     title,
+	if err := c.Validate(form); err != nil {
+		return err
+	}
+
+	todo, err := models.CreateTodo(models.TodoForm{
+		Title:     form.Title,
 		Completed: false,
 	})
 
 	if err != nil {
-		return helpers.HandleResponse(c, helpers.Response{
-			Message: err.Error(),
-			Status:  http.StatusBadRequest,
-		})
+		return helpers.ErrorBadRequest(err.Error())
 	}
 
-	return helpers.HandleResponse(c, helpers.Response{
-		Message: "User successfully created",
-		Status:  http.StatusCreated,
-		Result:  todo,
-	})
+	return helpers.Ok(c, http.StatusCreated, "Todo created successfully", todo)
 }
 
 /*
@@ -89,26 +67,16 @@ func (TodoController) Show(c echo.Context) error {
 
 	// Check for query params
 	if err != nil {
-		return helpers.HandleResponse(c, helpers.Response{
-			Message: err.Error(),
-			Status:  http.StatusBadRequest,
-		})
+		return helpers.ErrorBadRequest(err.Error())
 	}
 
-	todo, err, statusCode := models.GetTodo(id)
+	todo, statusCode, err := models.GetTodo(id)
 
 	if err != nil && statusCode >= 400 {
-		return helpers.HandleResponse(c, helpers.Response{
-			Message: err.Error(),
-			Status:  statusCode,
-		})
+		return helpers.ErrorDynamic(statusCode, err.Error())
 	}
 
-	return helpers.HandleResponse(c, helpers.Response{
-		Message: "Get todo success",
-		Status:  http.StatusOK,
-		Result:  todo,
-	})
+	return helpers.Ok(c, http.StatusOK, "Get todo success", todo)
 }
 
 /*
@@ -119,60 +87,42 @@ func (TodoController) Show(c echo.Context) error {
 * @return error
  */
 func (TodoController) Update(c echo.Context) error {
-	// Simple validation for payload
-	form, isNotValid := helpers.HandleJSON(c)
-	title, titleOk := form["title"].(string)
-	completed, completedOk := form["completed"].(bool)
+	form := new(models.TodoForm)
 
-	if (isNotValid && (!titleOk || !completedOk)) || title == "" {
-		return helpers.HandleResponse(c, helpers.Response{
-			Message: "Please fill all forms",
-			Status:  http.StatusUnprocessableEntity,
-			Result: map[string]string{
-				"title":     "Title is required",
-				"completed": "Completed is required",
-			},
-		})
+	if err := c.Bind(form); err != nil {
+		return helpers.ErrorBadRequest(err.Error())
+	}
+
+	if err := c.Validate(form); err != nil {
+		return err
 	}
 
 	id, err := strconv.Atoi(c.Param("id"))
 
 	// Check for query params
 	if err != nil {
-		return helpers.HandleResponse(c, helpers.Response{
-			Message: err.Error(),
-			Status:  http.StatusBadRequest,
-		})
+		return helpers.ErrorBadRequest(err.Error())
 	}
 
-	todo, err, statusCode := models.GetTodo(id)
+	todo, statusCode, err := models.GetTodo(id)
 
 	if err != nil && statusCode >= 400 {
-		return helpers.HandleResponse(c, helpers.Response{
-			Message: err.Error(),
-			Status:  statusCode,
-		})
+		return helpers.ErrorDynamic(statusCode, err.Error())
 	}
 
 	// Update record
-	todo.Title = title
-	todo.Completed = completed
+	todo.Title = form.Title
+	todo.Completed = form.Completed
 
 	// Save record
 	updateErr := models.UpdateTodo(todo)
 
 	if updateErr != nil {
-		return helpers.HandleResponse(c, helpers.Response{
-			Message: updateErr.Error(),
-			Status:  http.StatusInternalServerError,
-		})
+		return helpers.ErrorServer(updateErr.Error())
 	}
 
-	return helpers.HandleResponse(c, helpers.Response{
-		Message: "Todo successfully updated",
-		Status:  http.StatusOK,
-		Result:  todo,
-	})
+	return helpers.Ok(c, http.StatusOK, "Todo updated successfully", todo)
+
 }
 
 /*
@@ -187,33 +137,21 @@ func (TodoController) Delete(c echo.Context) error {
 
 	// Check for query params
 	if err != nil {
-		return helpers.HandleResponse(c, helpers.Response{
-			Message: err.Error(),
-			Status:  http.StatusBadRequest,
-		})
+		return helpers.ErrorBadRequest(err.Error())
 	}
 
-	todo, err, statusCode := models.GetTodo(id)
+	todo, statusCode, err := models.GetTodo(id)
 
 	if err != nil && statusCode >= 400 {
-		return helpers.HandleResponse(c, helpers.Response{
-			Message: err.Error(),
-			Status:  statusCode,
-		})
+		return helpers.ErrorDynamic(statusCode, err.Error())
 	}
 
 	deleteErr := models.DeleteTodo(todo)
 
 	if deleteErr != nil {
-		return helpers.HandleResponse(c, helpers.Response{
-			Message: deleteErr.Error(),
-			Status:  http.StatusInternalServerError,
-		})
+		return helpers.ErrorServer(deleteErr.Error())
 	}
 
-	return helpers.HandleResponse(c, helpers.Response{
-		Message: "Todo successfully deleted",
-		Status:  http.StatusOK,
-		Result:  todo,
-	})
+	return helpers.Ok(c, http.StatusOK, "Todo deleted successfully", todo)
+
 }

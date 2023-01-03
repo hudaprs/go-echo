@@ -8,6 +8,7 @@ import (
 )
 
 func RoutesInit(e *echo.Echo) {
+
 	v1 := e.Group("/api/v1")
 
 	e.GET("/", func(c echo.Context) error {

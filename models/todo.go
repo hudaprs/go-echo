@@ -9,9 +9,9 @@ import (
 	"gorm.io/gorm"
 )
 
-type ITodoForm struct {
-	Title     string
-	Completed bool
+type TodoForm struct {
+	Title     string `json:"title" validate:"required"`
+	Completed bool   `json:"completed"`
 }
 
 type Todo struct {
@@ -31,7 +31,7 @@ func GetTodoList() ([]Todo, error) {
 	return todoList, query.Error
 }
 
-func CreateTodo(payload ITodoForm) (Todo, error) {
+func CreateTodo(payload TodoForm) (Todo, error) {
 	db := database.DatabaseConnection()
 	todo := Todo{
 		Title:     payload.Title,
@@ -43,7 +43,7 @@ func CreateTodo(payload ITodoForm) (Todo, error) {
 	return todo, query.Error
 }
 
-func GetTodo(id int) (Todo, error, int) {
+func GetTodo(id int) (Todo, int, error) {
 	db := database.DatabaseConnection()
 
 	var todo Todo
@@ -62,7 +62,7 @@ func GetTodo(id int) (Todo, error, int) {
 		statusCode = http.StatusOK
 	}
 
-	return todo, query.Error, statusCode
+	return todo, statusCode, query.Error
 }
 
 func UpdateTodo(todo Todo) error {

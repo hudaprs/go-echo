@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 )
@@ -12,11 +13,45 @@ type Response struct {
 	Result  interface{} `json:"result"`
 }
 
-func HandleResponse(c echo.Context, response Response) error {
-	return c.JSON(response.Status, Response{
-		Status:  response.Status,
-		Message: response.Message,
-		Result:  response.Result,
+type ValidationResponse struct {
+	Field   string `json:"field"`
+	Message string `json:"message"`
+}
+
+func ErrorBadRequest(message string) error {
+	return echo.NewHTTPError(http.StatusBadRequest, Response{
+		Message: message,
+		Status:  http.StatusBadRequest,
+	})
+}
+
+func ErrorValidation(validations []ValidationResponse) error {
+	return echo.NewHTTPError(http.StatusUnprocessableEntity, Response{
+		Message: "Validation error",
+		Status:  http.StatusUnprocessableEntity,
+		Result:  validations,
+	})
+}
+
+func ErrorServer(message string) error {
+	return echo.NewHTTPError(http.StatusInternalServerError, Response{
+		Message: message,
+		Status:  http.StatusInternalServerError,
+	})
+}
+
+func ErrorDynamic(code int, message string) error {
+	return echo.NewHTTPError(code, Response{
+		Message: message,
+		Status:  code,
+	})
+}
+
+func Ok(c echo.Context, code int, message string, data interface{}) error {
+	return c.JSON(code, Response{
+		Message: message,
+		Status:  code,
+		Result:  data,
 	})
 }
 
