@@ -4,6 +4,7 @@ import (
 	"echo-rest/database"
 	"echo-rest/environment"
 	"echo-rest/helpers"
+	"echo-rest/migrations"
 	"echo-rest/routes"
 
 	"github.com/go-playground/validator/v10"
@@ -21,10 +22,13 @@ func main() {
 	environment.EnvironmentInit()
 
 	// Init Database
-	database.DatabaseInit()
+	db, _ := database.DatabaseInit()
+
+	// Init Migration
+	migrations.InitMigration(db)
 
 	// Init Routes
 	routes.RoutesInit(e)
 
-	e.Logger.Fatal(e.Start(":8000"))
+	e.Logger.Fatal(e.Start("127.0.0.1:8000"))
 }

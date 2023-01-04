@@ -22,7 +22,11 @@ type Todo struct {
 	UpdatedAt time.Time `gorm:"column:updatedAt" json:"updatedAt"`
 }
 
-func GetTodoList() ([]Todo, error) {
+func (Todo) TableName() string {
+	return "todos"
+}
+
+func (Todo) GetList() ([]Todo, error) {
 	db := database.DatabaseConnection()
 	var todoList []Todo
 
@@ -31,7 +35,7 @@ func GetTodoList() ([]Todo, error) {
 	return todoList, query.Error
 }
 
-func CreateTodo(payload TodoForm) (Todo, error) {
+func (Todo) Store(payload TodoForm) (Todo, error) {
 	db := database.DatabaseConnection()
 	todo := Todo{
 		Title:     payload.Title,
@@ -43,7 +47,7 @@ func CreateTodo(payload TodoForm) (Todo, error) {
 	return todo, query.Error
 }
 
-func GetTodo(id int) (Todo, int, error) {
+func (Todo) GetDetail(id int) (Todo, int, error) {
 	db := database.DatabaseConnection()
 
 	var todo Todo
@@ -65,7 +69,7 @@ func GetTodo(id int) (Todo, int, error) {
 	return todo, statusCode, query.Error
 }
 
-func UpdateTodo(todo Todo) error {
+func (Todo) Update(todo Todo) error {
 	db := database.DatabaseConnection()
 
 	query := db.Save(&todo)
@@ -73,7 +77,7 @@ func UpdateTodo(todo Todo) error {
 	return query.Error
 }
 
-func DeleteTodo(todo Todo) error {
+func (Todo) Delete(todo Todo) error {
 	db := database.DatabaseConnection()
 
 	query := db.Delete(&todo)

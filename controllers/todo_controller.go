@@ -12,15 +12,12 @@ import (
 type TodoController struct {
 }
 
-/**
-* @description Get todo list
-*
-* @param {echo.Context} c
-*
-* @return error
- */
+// @description Get todo list
+// @param 		echo.Context
+// @return		error
 func (TodoController) Index(c echo.Context) error {
-	todoList, err := models.GetTodoList()
+	todo := models.Todo{}
+	todoList, err := todo.GetList()
 
 	if err != nil {
 		return helpers.ErrorServer(err.Error())
@@ -43,7 +40,8 @@ func (TodoController) Store(c echo.Context) error {
 		return err
 	}
 
-	todo, err := models.CreateTodo(models.TodoForm{
+	todo := models.Todo{}
+	createdTodo, err := todo.Store(models.TodoForm{
 		Title:     form.Title,
 		Completed: false,
 	})
@@ -52,16 +50,12 @@ func (TodoController) Store(c echo.Context) error {
 		return helpers.ErrorBadRequest(err.Error())
 	}
 
-	return helpers.Ok(c, http.StatusCreated, "Todo created successfully", todo)
+	return helpers.Ok(c, http.StatusCreated, "Todo created successfully", createdTodo)
 }
 
-/*
-* @description Get single todo
-*
-* @param {echo.Context} c
-*
-* @return error
- */
+// @description Get todo detail
+// @param 		echo.Context
+// @return		error
 func (TodoController) Show(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 
@@ -70,22 +64,19 @@ func (TodoController) Show(c echo.Context) error {
 		return helpers.ErrorBadRequest(err.Error())
 	}
 
-	todo, statusCode, err := models.GetTodo(id)
+	todo := models.Todo{}
+	todoDetail, statusCode, err := todo.GetDetail(id)
 
 	if err != nil && statusCode >= 400 {
 		return helpers.ErrorDynamic(statusCode, err.Error())
 	}
 
-	return helpers.Ok(c, http.StatusOK, "Get todo success", todo)
+	return helpers.Ok(c, http.StatusOK, "Get todo success", todoDetail)
 }
 
-/*
-* @description Update todo
-*
-* @param {echo.Context} c
-*
-* @return error
- */
+// @description Update todo
+// @param 		echo.Context
+// @return		error
 func (TodoController) Update(c echo.Context) error {
 	form := new(models.TodoForm)
 
@@ -104,34 +95,31 @@ func (TodoController) Update(c echo.Context) error {
 		return helpers.ErrorBadRequest(err.Error())
 	}
 
-	todo, statusCode, err := models.GetTodo(id)
+	todo := models.Todo{}
+	todoDetail, statusCode, err := todo.GetDetail(id)
 
 	if err != nil && statusCode >= 400 {
 		return helpers.ErrorDynamic(statusCode, err.Error())
 	}
 
 	// Update record
-	todo.Title = form.Title
-	todo.Completed = form.Completed
+	todoDetail.Title = form.Title
+	todoDetail.Completed = form.Completed
 
 	// Save record
-	updateErr := models.UpdateTodo(todo)
+	updateErr := todo.Update(todoDetail)
 
 	if updateErr != nil {
 		return helpers.ErrorServer(updateErr.Error())
 	}
 
-	return helpers.Ok(c, http.StatusOK, "Todo updated successfully", todo)
+	return helpers.Ok(c, http.StatusOK, "Todo updated successfully", todoDetail)
 
 }
 
-/*
-* @description Delete todo
-*
-* @param {echo.Context} c
-*
-* @return error
- */
+// @description Delete todo
+// @param 		echo.Context
+// @return		error
 func (TodoController) Delete(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 
@@ -140,18 +128,18 @@ func (TodoController) Delete(c echo.Context) error {
 		return helpers.ErrorBadRequest(err.Error())
 	}
 
-	todo, statusCode, err := models.GetTodo(id)
+	todo := models.Todo{}
+	todoDetail, statusCode, err := todo.GetDetail(id)
 
 	if err != nil && statusCode >= 400 {
 		return helpers.ErrorDynamic(statusCode, err.Error())
 	}
 
-	deleteErr := models.DeleteTodo(todo)
+	deleteErr := todo.Delete(todoDetail)
 
 	if deleteErr != nil {
 		return helpers.ErrorServer(deleteErr.Error())
 	}
 
-	return helpers.Ok(c, http.StatusOK, "Todo deleted successfully", todo)
-
+	return helpers.Ok(c, http.StatusOK, "Todo deleted successfully", todoDetail)
 }

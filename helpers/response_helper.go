@@ -47,6 +47,13 @@ func ErrorDynamic(code int, message string) error {
 	})
 }
 
+func ErrorUnauthorized() error {
+	return echo.NewHTTPError(http.StatusUnauthorized, Response{
+		Message: "Unauthorized",
+		Status:  http.StatusUnauthorized,
+	})
+}
+
 func Ok(c echo.Context, code int, message string, data interface{}) error {
 	return c.JSON(code, Response{
 		Message: message,
