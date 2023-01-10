@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
@@ -17,6 +18,12 @@ func main() {
 
 	// Validator Instance
 	e.Validator = &helpers.CustomValidator{Validator: validator.New()}
+
+	// CORS
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+		AllowHeaders: []string{"*"},
+	}))
 
 	// Init Environment
 	environment.EnvironmentInit()

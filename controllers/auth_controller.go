@@ -94,7 +94,7 @@ func (AuthController) Login(c echo.Context) error {
 		return helpers.ErrorBadRequest(err.Error())
 	}
 
-	return helpers.Ok(c, http.StatusCreated, "You has been registered successfully", models.UserAuthResponse{
+	return helpers.Ok(c, http.StatusOK, "You have successfully login", models.UserAuthResponse{
 		Token: signedToken,
 	})
 }
