@@ -13,6 +13,9 @@ func JwtConfig() echojwt.Config {
 		NewClaimsFunc: func(c echo.Context) jwt.Claims {
 			return new(helpers.JwtCustomClaims)
 		},
+		ErrorHandler: func(c echo.Context, err error) error {
+			return helpers.ErrorUnauthorized()
+		},
 		SigningKey: []byte("secret"),
 	}
 

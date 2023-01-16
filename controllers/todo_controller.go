@@ -17,7 +17,8 @@ type TodoController struct {
 // @return		error
 func (TodoController) Index(c echo.Context) error {
 	todo := models.Todo{}
-	todoList, err := todo.GetList()
+	authenticatedUser := helpers.JwtGetClaims(c)
+	todoList, err := todo.GetList(authenticatedUser.ID)
 
 	if err != nil {
 		return helpers.ErrorServer(err.Error())
@@ -41,9 +42,11 @@ func (TodoController) Store(c echo.Context) error {
 	}
 
 	todo := models.Todo{}
+	authenticatedUser := helpers.JwtGetClaims(c)
 	createdTodo, err := todo.Store(models.TodoForm{
 		Title:     form.Title,
 		Completed: false,
+		UserID:    authenticatedUser.ID,
 	})
 
 	if err != nil {
@@ -57,6 +60,7 @@ func (TodoController) Store(c echo.Context) error {
 // @param 		echo.Context
 // @return		error
 func (TodoController) Show(c echo.Context) error {
+	authenticatedUser := helpers.JwtGetClaims(c)
 	id, err := strconv.Atoi(c.Param("id"))
 
 	// Check for query params
@@ -67,6 +71,12 @@ func (TodoController) Show(c echo.Context) error {
 	todo := models.Todo{}
 	todoDetail, statusCode, err := todo.GetDetail(id)
 
+	// Check if not correct user
+	if !todo.IsCorrectUser(authenticatedUser.ID, todoDetail) {
+		return helpers.ErrorForbidden()
+	}
+
+	// Check if something went wrong when trying to lookup todo detail
 	if err != nil && statusCode >= 400 {
 		return helpers.ErrorDynamic(statusCode, err.Error())
 	}
@@ -78,6 +88,7 @@ func (TodoController) Show(c echo.Context) error {
 // @param 		echo.Context
 // @return		error
 func (TodoController) Update(c echo.Context) error {
+	authenticatedUser := helpers.JwtGetClaims(c)
 	form := new(models.TodoForm)
 
 	if err := c.Bind(form); err != nil {
@@ -97,6 +108,11 @@ func (TodoController) Update(c echo.Context) error {
 
 	todo := models.Todo{}
 	todoDetail, statusCode, err := todo.GetDetail(id)
+
+	// Check if not correct user
+	if !todo.IsCorrectUser(authenticatedUser.ID, todoDetail) {
+		return helpers.ErrorForbidden()
+	}
 
 	if err != nil && statusCode >= 400 {
 		return helpers.ErrorDynamic(statusCode, err.Error())
@@ -121,6 +137,7 @@ func (TodoController) Update(c echo.Context) error {
 // @param 		echo.Context
 // @return		error
 func (TodoController) Delete(c echo.Context) error {
+	authenticatedUser := helpers.JwtGetClaims(c)
 	id, err := strconv.Atoi(c.Param("id"))
 
 	// Check for query params
@@ -130,6 +147,11 @@ func (TodoController) Delete(c echo.Context) error {
 
 	todo := models.Todo{}
 	todoDetail, statusCode, err := todo.GetDetail(id)
+
+	// Check if not correct user
+	if !todo.IsCorrectUser(authenticatedUser.ID, todoDetail) {
+		return helpers.ErrorForbidden()
+	}
 
 	if err != nil && statusCode >= 400 {
 		return helpers.ErrorDynamic(statusCode, err.Error())

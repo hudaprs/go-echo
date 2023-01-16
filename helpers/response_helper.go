@@ -54,6 +54,13 @@ func ErrorUnauthorized() error {
 	})
 }
 
+func ErrorForbidden() error {
+	return echo.NewHTTPError(http.StatusForbidden, Response{
+		Message: "You don't have access to this content!",
+		Status:  http.StatusForbidden,
+	})
+}
+
 func Ok(c echo.Context, code int, message string, data interface{}) error {
 	return c.JSON(code, Response{
 		Message: message,

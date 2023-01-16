@@ -3,14 +3,19 @@ package models
 import (
 	"echo-rest/database"
 	"echo-rest/helpers"
+	"errors"
+	"net/http"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type User struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
-	Name      string    `gorm:"name" json:"name"`
-	Email     string    `gorm:"email;index:index_email,unique" json:"email"`
-	Password  string    `gorm:"password" json:"-"`
+	TodoList  []Todo    `gorm:"foreignKey:UserID;association_foreignkey:ID" json:"todoList,omitempty"`
+	Name      string    `gorm:"column:name" json:"name"`
+	Email     string    `gorm:"column:email;index:index_email,unique" json:"email"`
+	Password  string    `gorm:"column:password" json:"-"`
 	CreatedAt time.Time `gorm:"column:createdAt" json:"createdAt"`
 	UpdatedAt time.Time `gorm:"column:updatedAt" json:"updatedAt"`
 }
@@ -26,8 +31,14 @@ type UserLoginForm struct {
 	Password string `json:"password" validate:"required"`
 }
 
-type UserAuthResponse struct {
+type UserLoginResponse struct {
 	Token string `json:"token"`
+}
+
+type UserMeResponse struct {
+	ID    uint `json:"id"`
+	Name  uint `json:"name"`
+	Email uint `json:"email"`
 }
 
 func (User) TableName() string {
@@ -43,6 +54,28 @@ func (User) CheckEmail(email string) (User, int, error) {
 	findUserStatusCode := helpers.ValidateNotFoundData(query.Error)
 
 	return user, findUserStatusCode, query.Error
+}
+
+func (User) GetDetail(id int) (User, int, error) {
+	db := database.DatabaseConnection()
+
+	var user User
+
+	query := db.First(&user, id)
+
+	isNotFound := errors.Is(query.Error, gorm.ErrRecordNotFound)
+
+	var statusCode int
+
+	if isNotFound {
+		statusCode = http.StatusNotFound
+	} else if query.Error != nil {
+		statusCode = http.StatusInternalServerError
+	} else {
+		statusCode = http.StatusOK
+	}
+
+	return user, statusCode, query.Error
 }
 
 func (User) Store(payload UserStoreForm) (User, error) {

@@ -10,6 +10,7 @@ import (
 )
 
 func RoutesInit(e *echo.Echo) {
+	authMiddleware := echojwt.WithConfig(middlewares.JwtConfig())
 	v1 := e.Group("/api/v1")
 
 	e.GET("/", func(c echo.Context) error {
@@ -21,11 +22,12 @@ func RoutesInit(e *echo.Echo) {
 	auth := v1.Group("/auth")
 	auth.POST("/register", AuthController.Register)
 	auth.POST("/login", AuthController.Login)
+	auth.GET("/me", AuthController.Me, authMiddleware)
 
 	// Todo Features
 	TodoController := controllers.TodoController{}
 	todos := v1.Group("/todos")
-	todos.Use(echojwt.WithConfig(middlewares.JwtConfig()))
+	todos.Use(authMiddleware)
 
 	// Todo Route List
 	todos.GET("", TodoController.Index)

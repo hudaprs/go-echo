@@ -94,7 +94,24 @@ func (AuthController) Login(c echo.Context) error {
 		return helpers.ErrorBadRequest(err.Error())
 	}
 
-	return helpers.Ok(c, http.StatusOK, "You have successfully login", models.UserAuthResponse{
+	return helpers.Ok(c, http.StatusOK, "You have successfully login", models.UserLoginResponse{
 		Token: signedToken,
 	})
+}
+
+// @description Get authenticated user
+// @param 		echo.Context
+// @return		error
+func (AuthController) Me(c echo.Context) error {
+	authenticatedUser := helpers.JwtGetClaims(c)
+
+	// Find User
+	user := models.User{}
+	userDetail, statusCode, err := user.GetDetail(int(authenticatedUser.ID))
+
+	if err != nil && statusCode >= 400 {
+		return helpers.ErrorDynamic(statusCode, err.Error())
+	}
+
+	return helpers.Ok(c, http.StatusOK, "Hi!", userDetail)
 }

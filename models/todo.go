@@ -12,13 +12,16 @@ import (
 type TodoForm struct {
 	Title     string `json:"title" validate:"required"`
 	Completed bool   `json:"completed"`
+	UserID    uint   `json:"userId"`
 }
 
 type Todo struct {
-	ID        uint      `gorm:"primaryKey" column:"id" json:"id"`
-	Title     string    `gorm:"title" json:"title"`
-	Completed bool      `gorm:"completed" json:"completed"`
-	CreatedAt time.Time `gorm:"column:createdAt;" json:"createdAt"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	UserID    uint      `gorm:"column:userId" json:"userId"`
+	User      User      `gorm:"foreignKey:ID;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT" json:"user,omitempty"`
+	Title     string    `gorm:"column:title" json:"title"`
+	Completed bool      `gorm:"column:completed" json:"completed"`
+	CreatedAt time.Time `gorm:"column:createdAt" json:"createdAt"`
 	UpdatedAt time.Time `gorm:"column:updatedAt" json:"updatedAt"`
 }
 
@@ -26,11 +29,11 @@ func (Todo) TableName() string {
 	return "todos"
 }
 
-func (Todo) GetList() ([]Todo, error) {
+func (Todo) GetList(userId uint) ([]Todo, error) {
 	db := database.DatabaseConnection()
 	var todoList []Todo
 
-	query := db.Find(&todoList)
+	query := db.Preload("User").Where(&Todo{UserID: userId}).Find(&todoList)
 
 	return todoList, query.Error
 }
@@ -40,9 +43,10 @@ func (Todo) Store(payload TodoForm) (Todo, error) {
 	todo := Todo{
 		Title:     payload.Title,
 		Completed: payload.Completed,
+		UserID:    payload.UserID,
 	}
 
-	query := db.Create(&todo)
+	query := db.Preload("User").Create(&todo)
 
 	return todo, query.Error
 }
@@ -83,4 +87,8 @@ func (Todo) Delete(todo Todo) error {
 	query := db.Delete(&todo)
 
 	return query.Error
+}
+
+func (Todo) IsCorrectUser(userId uint, todo Todo) bool {
+	return userId == todo.UserID
 }
