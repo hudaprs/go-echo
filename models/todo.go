@@ -18,7 +18,7 @@ type TodoForm struct {
 type Todo struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	UserID    uint      `gorm:"column:userId" json:"userId"`
-	User      User      `gorm:"foreignKey:ID;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT" json:"user,omitempty"`
+	User      User      `gorm:"foreignKey:UserID;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT" json:"user,omitempty"`
 	Title     string    `gorm:"column:title" json:"title"`
 	Completed bool      `gorm:"column:completed" json:"completed"`
 	CreatedAt time.Time `gorm:"column:createdAt" json:"createdAt"`

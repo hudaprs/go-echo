@@ -12,7 +12,6 @@ import (
 
 type User struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
-	TodoList  []Todo    `gorm:"foreignKey:UserID;association_foreignkey:ID" json:"todoList,omitempty"`
 	Name      string    `gorm:"column:name" json:"name"`
 	Email     string    `gorm:"column:email;index:index_email,unique" json:"email"`
 	Password  string    `gorm:"column:password" json:"-"`
