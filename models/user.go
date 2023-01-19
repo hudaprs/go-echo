@@ -15,8 +15,8 @@ type User struct {
 	Name      string    `gorm:"column:name" json:"name"`
 	Email     string    `gorm:"column:email;index:index_email,unique" json:"email"`
 	Password  string    `gorm:"column:password" json:"-"`
-	CreatedAt time.Time `gorm:"column:createdAt" json:"createdAt"`
-	UpdatedAt time.Time `gorm:"column:updatedAt" json:"updatedAt"`
+	CreatedAt time.Time `gorm:"column:created_at" json:"createdAt"`
+	UpdatedAt time.Time `gorm:"column:updated_at" json:"updatedAt"`
 }
 
 type UserStoreForm struct {

@@ -17,12 +17,12 @@ type TodoForm struct {
 
 type Todo struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
-	UserID    uint      `gorm:"column:userId" json:"userId"`
+	UserID    uint      `gorm:"column:user_id" json:"userId"`
 	User      User      `gorm:"foreignKey:UserID;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT" json:"user,omitempty"`
 	Title     string    `gorm:"column:title" json:"title"`
 	Completed bool      `gorm:"column:completed" json:"completed"`
-	CreatedAt time.Time `gorm:"column:createdAt" json:"createdAt"`
-	UpdatedAt time.Time `gorm:"column:updatedAt" json:"updatedAt"`
+	CreatedAt time.Time `gorm:"column:created_at" json:"createdAt"`
+	UpdatedAt time.Time `gorm:"column:updated_at" json:"updatedAt"`
 }
 
 func (Todo) TableName() string {
@@ -33,7 +33,7 @@ func (Todo) GetList(userId uint) ([]Todo, error) {
 	db := database.DatabaseConnection()
 	var todoList []Todo
 
-	query := db.Preload("User").Where(&Todo{UserID: userId}).Find(&todoList)
+	query := db.Order("updated_at desc").Order("created_at desc").Preload("User").Where(&Todo{UserID: userId}).Find(&todoList)
 
 	return todoList, query.Error
 }
@@ -56,7 +56,7 @@ func (Todo) GetDetail(id int) (Todo, int, error) {
 
 	var todo Todo
 
-	query := db.First(&todo, id)
+	query := db.Preload("User").First(&todo, id)
 
 	isNotFound := errors.Is(query.Error, gorm.ErrRecordNotFound)
 
