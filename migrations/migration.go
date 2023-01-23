@@ -10,7 +10,7 @@ import (
 )
 
 func InitMigration(db *gorm.DB) {
-	err := database.DatabaseConnection().AutoMigrate(&models.Todo{}, &models.User{})
+	err := database.DatabaseConnection().AutoMigrate(&models.Todo{}, &models.User{}, &models.RefreshToken{})
 
 	if err != nil {
 		fmt.Println("Migration: something went wrong when start to migrate", err)

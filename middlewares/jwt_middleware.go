@@ -2,6 +2,8 @@ package middlewares
 
 import (
 	"echo-rest/helpers"
+	"net/http"
+	"os"
 
 	"github.com/golang-jwt/jwt/v4"
 	echojwt "github.com/labstack/echo-jwt/v4"
@@ -14,9 +16,9 @@ func JwtConfig() echojwt.Config {
 			return new(helpers.JwtCustomClaims)
 		},
 		ErrorHandler: func(c echo.Context, err error) error {
-			return helpers.ErrorUnauthorized()
+			return helpers.ErrorDynamic(http.StatusUnauthorized, err.Error())
 		},
-		SigningKey: []byte("secret"),
+		SigningKey: []byte(os.Getenv("JWT_SECRET")),
 	}
 
 	return config

@@ -24,7 +24,7 @@ func (TodoController) Index(c echo.Context) error {
 		return helpers.ErrorServer(err.Error())
 	}
 
-	return helpers.Ok(c, http.StatusOK, "Get todo list success", todoList)
+	return helpers.Ok(http.StatusOK, "Get todo list success", todoList)
 }
 
 // @description Create todo
@@ -53,7 +53,7 @@ func (TodoController) Store(c echo.Context) error {
 		return helpers.ErrorBadRequest(err.Error())
 	}
 
-	return helpers.Ok(c, http.StatusCreated, "Todo created successfully", createdTodo)
+	return helpers.Ok(http.StatusCreated, "Todo created successfully", createdTodo)
 }
 
 // @description Get todo detail
@@ -81,7 +81,7 @@ func (TodoController) Show(c echo.Context) error {
 		return helpers.ErrorDynamic(statusCode, err.Error())
 	}
 
-	return helpers.Ok(c, http.StatusOK, "Get todo success", todoDetail)
+	return helpers.Ok(http.StatusOK, "Get todo success", todoDetail)
 }
 
 // @description Update todo
@@ -129,7 +129,7 @@ func (TodoController) Update(c echo.Context) error {
 		return helpers.ErrorServer(updateErr.Error())
 	}
 
-	return helpers.Ok(c, http.StatusOK, "Todo updated successfully", todoDetail)
+	return helpers.Ok(http.StatusOK, "Todo updated successfully", todoDetail)
 
 }
 
@@ -163,5 +163,5 @@ func (TodoController) Delete(c echo.Context) error {
 		return helpers.ErrorServer(deleteErr.Error())
 	}
 
-	return helpers.Ok(c, http.StatusOK, "Todo deleted successfully", todoDetail)
+	return helpers.Ok(http.StatusOK, "Todo deleted successfully", todoDetail)
 }

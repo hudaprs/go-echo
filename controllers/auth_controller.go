@@ -4,6 +4,7 @@ import (
 	"echo-rest/helpers"
 	"echo-rest/models"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -11,6 +12,41 @@ import (
 )
 
 type AuthController struct{}
+
+// @description Generate token (common token / refresh token)
+// @scope 		Private
+// @param 		user models.User
+// @return		string (common token), string (refreshToken), error
+func generateToken(user models.User) (string, string, error) {
+	claims := helpers.JwtCustomClaims{
+		ID:    user.ID,
+		Email: user.Email,
+	}
+	refreshClaims := claims
+
+	// Expire for 15 seconds
+	claims.RegisteredClaims = jwt.RegisteredClaims{
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Second * 15)),
+	}
+
+	// Generate JWT
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
+
+	// Generate token with signed key (JWT_SECRET)
+	signedToken, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	if err != nil {
+		return "", "", err
+	}
+
+	// Generate refresh token with signed key (JWT_SECRET_REFRESH)
+	signedRefreshToken, err := refreshToken.SignedString([]byte(os.Getenv("JWT_SECRET_REFRESH")))
+	if err != nil {
+		return "", "", err
+	}
+
+	return signedToken, signedRefreshToken, err
+}
 
 // @description Register
 // @param 		echo.Context
@@ -39,7 +75,7 @@ func (AuthController) Register(c echo.Context) error {
 		return helpers.ErrorBadRequest(err.Error())
 	}
 
-	return helpers.Ok(c, http.StatusCreated, "You has been registered successfully", createdUser)
+	return helpers.Ok(http.StatusCreated, "You has been registered successfully", createdUser)
 }
 
 // @description Login
@@ -75,27 +111,44 @@ func (AuthController) Login(c echo.Context) error {
 		}
 	}
 
-	// Set jwt claims
-	claims := &helpers.JwtCustomClaims{
-		ID:    userDetail.ID,
-		Name:  userDetail.Name,
-		Email: userDetail.Email,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 72)),
-		},
-	}
+	// Generate token
+	token, refreshToken, err := generateToken(userDetail)
 
-	// Generate JWT
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	// Generate token with signed key (JWT_KEY)
-	signedToken, err := token.SignedString([]byte("secret"))
 	if err != nil {
 		return helpers.ErrorBadRequest(err.Error())
 	}
 
-	return helpers.Ok(c, http.StatusOK, "You have successfully login", models.UserLoginResponse{
-		Token: signedToken,
+	refreshTokenModel := models.RefreshToken{}
+
+	// Find refresh token
+	_, refreshTokenDetailStatusCode, refreshTokenDetailErr := refreshTokenModel.Show(userDetail.ID)
+	if refreshTokenDetailErr != nil && refreshTokenDetailStatusCode == http.StatusInternalServerError {
+		return helpers.ErrorServer(refreshTokenDetailErr.Error())
+	}
+
+	// Check if refresh token exists
+	if refreshTokenDetailStatusCode == http.StatusOK {
+		// Remove refresh token
+		refreshTokenDeleteErr := refreshTokenModel.Delete(userDetail.ID)
+		if refreshTokenDeleteErr != nil {
+			return helpers.ErrorServer(refreshTokenDeleteErr.Error())
+		}
+	}
+
+	// Insert refresh token to database
+	// In other word, create new refresh token every user login again
+	_, refreshTokenInsertErr := refreshTokenModel.Store(models.RefreshTokenForm{
+		UserID:       userDetail.ID,
+		RefreshToken: refreshToken,
+	})
+
+	if refreshTokenInsertErr != nil {
+		return helpers.ErrorServer(refreshTokenInsertErr.Error())
+	}
+
+	return helpers.Ok(http.StatusOK, "You have successfully login", models.UserLoginResponse{
+		Token:        token,
+		RefreshToken: refreshToken,
 	})
 }
 
@@ -113,5 +166,46 @@ func (AuthController) Me(c echo.Context) error {
 		return helpers.ErrorDynamic(statusCode, err.Error())
 	}
 
-	return helpers.Ok(c, http.StatusOK, "Hi!", userDetail)
+	return helpers.Ok(http.StatusOK, "Hi!", userDetail)
+}
+
+// @description Refresh token
+// @param 		echo.Context
+// @return		error
+func (AuthController) Refresh(c echo.Context) error {
+	form := new(models.UserRefreshForm)
+
+	if err := c.Bind(form); err != nil {
+		return helpers.ErrorBadRequest(err.Error())
+	}
+
+	if err := c.Validate(form); err != nil {
+		return err
+	}
+
+	return helpers.Ok(http.StatusOK, "Token refreshed", models.UserLoginResponse{})
+}
+
+// @description Logout
+// @param 		echo.Context
+// @return		error
+func (AuthController) Logout(c echo.Context) error {
+	form := new(models.UserRefreshForm)
+
+	if err := c.Bind(form); err != nil {
+		return helpers.ErrorBadRequest(err.Error())
+	}
+
+	if err := c.Validate(form); err != nil {
+		return err
+	}
+
+	// Remove refresh token
+	refreshToken := models.RefreshToken{}
+	statusCode, refreshTokenDeleteErr := refreshToken.DeleteByRefreshToken(form.RefreshToken)
+	if refreshTokenDeleteErr != nil {
+		return helpers.ErrorDynamic(statusCode, refreshTokenDeleteErr.Error())
+	}
+
+	return helpers.Ok(http.StatusOK, "You have successfully logout", nil)
 }

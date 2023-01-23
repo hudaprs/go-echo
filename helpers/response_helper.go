@@ -1,7 +1,6 @@
 package helpers
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -61,21 +60,10 @@ func ErrorForbidden() error {
 	})
 }
 
-func Ok(c echo.Context, code int, message string, data interface{}) error {
-	return c.JSON(code, Response{
+func Ok(code int, message string, data interface{}) error {
+	return echo.NewHTTPError(code, Response{
 		Message: message,
 		Status:  code,
 		Result:  data,
 	})
-}
-
-func HandleJSON(c echo.Context) (map[string]interface{}, bool) {
-	_json := make(map[string]interface{})
-	json.NewDecoder(c.Request().Body).Decode(&_json)
-
-	if len(_json) == 0 {
-		return nil, true
-	}
-
-	return _json, false
 }

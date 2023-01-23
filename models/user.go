@@ -30,8 +30,13 @@ type UserLoginForm struct {
 	Password string `json:"password" validate:"required"`
 }
 
+type UserRefreshForm struct {
+	RefreshToken string `json:"refreshToken" validate:"required"`
+}
+
 type UserLoginResponse struct {
-	Token string `json:"token"`
+	Token        string `json:"token"`
+	RefreshToken string `json:"refreshToken"`
 }
 
 type UserMeResponse struct {
