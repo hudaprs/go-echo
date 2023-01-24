@@ -23,7 +23,7 @@ func RoutesInit(e *echo.Echo) {
 	auth.POST("/register", AuthController.Register)
 	auth.POST("/login", AuthController.Login)
 	auth.GET("/refresh", AuthController.Refresh)
-	auth.POST("/logout", AuthController.Logout)
+	auth.GET("/logout", AuthController.Logout)
 	auth.GET("/me", AuthController.Me, authMiddleware)
 
 	// Todo Features

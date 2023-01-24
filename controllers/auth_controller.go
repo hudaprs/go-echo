@@ -48,6 +48,27 @@ func generateToken(user models.User) (string, string, error) {
 	return signedToken, signedRefreshToken, err
 }
 
+// @description Get refresh token from custom headers (X-Auth-Refresh-Token)
+// @return		string (refresh token) []helpers.ValidationResponse
+func getRefreshToken(c echo.Context) (string, []helpers.ValidationResponse) {
+	// Headers
+	refreshTokenHeader := c.Request().Header["X-Auth-Refresh-Token"]
+
+	// Check if no refresh token header
+	if len(refreshTokenHeader) == 0 {
+		var validationResponse []helpers.ValidationResponse
+
+		validationResponse = append(validationResponse, helpers.ValidationResponse{
+			Field:   "X-Auth-Refresh-Token",
+			Message: "X-Auth-Refresh-Token header is required",
+		})
+
+		return "", validationResponse
+	}
+
+	return refreshTokenHeader[0], nil
+}
+
 // @description Register
 // @param 		echo.Context
 // @return		error
@@ -173,23 +194,13 @@ func (AuthController) Me(c echo.Context) error {
 // @param 		echo.Context
 // @return		error
 func (AuthController) Refresh(c echo.Context) error {
-	// Headers
-	refreshTokenHeader := c.Request().Header["X-Auth-Refresh-Token"]
-
-	// Check if no refresh token header
-	if len(refreshTokenHeader) == 0 {
-		var validationResponse []helpers.ValidationResponse
-
-		validationResponse = append(validationResponse, helpers.ValidationResponse{
-			Field:   "X-Auth-Refresh-Token",
-			Message: "X-Auth-Refresh-Token header is required",
-		})
-
-		return helpers.ErrorValidation(validationResponse)
+	// Get refresh token from header
+	refreshTokenHeaderString, refreshTokenHeaderErr := getRefreshToken(c)
+	if refreshTokenHeaderErr != nil {
+		return helpers.ErrorValidation(refreshTokenHeaderErr)
 	}
 
-	// Find refresh token
-	refreshTokenHeaderString := refreshTokenHeader[0]
+	// Find refresh token from database
 	refreshTokenModel := models.RefreshToken{}
 	refreshTokenDetail, statusCode, err := refreshTokenModel.ShowByRefreshToken(refreshTokenHeaderString)
 	if err != nil && statusCode >= 400 {
@@ -203,7 +214,7 @@ func (AuthController) Refresh(c echo.Context) error {
 		return helpers.ErrorDynamic(statusCode, err.Error())
 	}
 
-	// Refresh the token
+	// Generate new token
 	token, newRefreshToken, err := generateToken(userDetail)
 	if err != nil {
 		return helpers.ErrorBadRequest(err.Error())
@@ -219,19 +230,15 @@ func (AuthController) Refresh(c echo.Context) error {
 // @param 		echo.Context
 // @return		error
 func (AuthController) Logout(c echo.Context) error {
-	form := new(models.UserRefreshForm)
-
-	if err := c.Bind(form); err != nil {
-		return helpers.ErrorBadRequest(err.Error())
-	}
-
-	if err := c.Validate(form); err != nil {
-		return err
+	// Get refresh token from header
+	refreshTokenHeaderString, refreshTokenHeaderErr := getRefreshToken(c)
+	if refreshTokenHeaderErr != nil {
+		return helpers.ErrorValidation(refreshTokenHeaderErr)
 	}
 
 	// Remove refresh token
 	refreshToken := models.RefreshToken{}
-	statusCode, refreshTokenDeleteErr := refreshToken.DeleteByRefreshToken(form.RefreshToken)
+	statusCode, refreshTokenDeleteErr := refreshToken.DeleteByRefreshToken(refreshTokenHeaderString)
 	if refreshTokenDeleteErr != nil {
 		return helpers.ErrorDynamic(statusCode, refreshTokenDeleteErr.Error())
 	}
