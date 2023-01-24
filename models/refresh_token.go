@@ -2,7 +2,7 @@ package models
 
 import (
 	"echo-rest/database"
-	"errors"
+	"echo-rest/helpers"
 	"net/http"
 	"time"
 
@@ -42,23 +42,24 @@ func (rt RefreshToken) Store(payload RefreshTokenForm) (RefreshToken, error) {
 
 func (RefreshToken) Show(userId uint) (RefreshToken, int, error) {
 	db := database.DatabaseConnection()
-	var _refreshToken RefreshToken
+	var refreshTokenDetail RefreshToken
 
-	query := db.Where(&RefreshToken{UserID: userId}).First(&_refreshToken)
+	query := db.Where(&RefreshToken{UserID: userId}).First(&refreshTokenDetail)
 
-	isNotFound := errors.Is(query.Error, gorm.ErrRecordNotFound)
+	statusCode, err := helpers.ErrorDatabaseNotFound(query.Error, gorm.ErrRecordNotFound)
 
-	var statusCode int
+	return refreshTokenDetail, statusCode, err
+}
 
-	if isNotFound {
-		statusCode = http.StatusNotFound
-	} else if query.Error != nil {
-		statusCode = http.StatusInternalServerError
-	} else {
-		statusCode = http.StatusOK
-	}
+func (RefreshToken) ShowByRefreshToken(refreshToken string) (RefreshToken, int, error) {
+	db := database.DatabaseConnection()
 
-	return _refreshToken, statusCode, query.Error
+	var refreshTokenDetail RefreshToken
+	query := db.Where(&RefreshToken{RefreshToken: refreshToken}).First(&refreshTokenDetail)
+
+	statusCode, err := helpers.ErrorDatabaseNotFound(query.Error, gorm.ErrRecordNotFound)
+
+	return refreshTokenDetail, statusCode, err
 }
 
 func (RefreshToken) Delete(userId uint) error {
@@ -87,5 +88,5 @@ func (rt RefreshToken) DeleteByRefreshToken(refreshToken string) (int, error) {
 
 	queryDelete := db.Delete(&refreshTokenDetail)
 
-	return http.StatusInternalServerError, queryDelete.Error
+	return statusCode, queryDelete.Error
 }

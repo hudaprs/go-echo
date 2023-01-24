@@ -10,13 +10,22 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+func handleErrorMessage(err string) string {
+	switch err {
+	case "missing value in request header":
+		return "Authorization header is required"
+	default:
+		return err
+	}
+}
+
 func JwtConfig() echojwt.Config {
 	config := echojwt.Config{
 		NewClaimsFunc: func(c echo.Context) jwt.Claims {
 			return new(helpers.JwtCustomClaims)
 		},
 		ErrorHandler: func(c echo.Context, err error) error {
-			return helpers.ErrorDynamic(http.StatusUnauthorized, err.Error())
+			return helpers.ErrorDynamic(http.StatusUnauthorized, handleErrorMessage(err.Error()))
 		},
 		SigningKey: []byte(os.Getenv("JWT_SECRET")),
 	}

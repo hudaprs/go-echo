@@ -130,7 +130,6 @@ func (TodoController) Update(c echo.Context) error {
 	}
 
 	return helpers.Ok(http.StatusOK, "Todo updated successfully", todoDetail)
-
 }
 
 // @description Delete todo

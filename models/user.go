@@ -3,8 +3,6 @@ package models
 import (
 	"echo-rest/database"
 	"echo-rest/helpers"
-	"errors"
-	"net/http"
 	"time"
 
 	"gorm.io/gorm"
@@ -60,26 +58,16 @@ func (User) CheckEmail(email string) (User, int, error) {
 	return user, findUserStatusCode, query.Error
 }
 
-func (User) GetDetail(id int) (User, int, error) {
+func (User) Show(id uint) (User, int, error) {
 	db := database.DatabaseConnection()
 
 	var user User
 
 	query := db.First(&user, id)
 
-	isNotFound := errors.Is(query.Error, gorm.ErrRecordNotFound)
+	statusCode, err := helpers.ErrorDatabaseNotFound(query.Error, gorm.ErrRecordNotFound)
 
-	var statusCode int
-
-	if isNotFound {
-		statusCode = http.StatusNotFound
-	} else if query.Error != nil {
-		statusCode = http.StatusInternalServerError
-	} else {
-		statusCode = http.StatusOK
-	}
-
-	return user, statusCode, query.Error
+	return user, statusCode, err
 }
 
 func (User) Store(payload UserStoreForm) (User, error) {

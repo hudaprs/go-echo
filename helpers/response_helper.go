@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -66,4 +67,20 @@ func Ok(code int, message string, data interface{}) error {
 		Status:  code,
 		Result:  data,
 	})
+}
+
+func ErrorDatabaseNotFound(queryError error, gormErrorNotFound error) (int, error) {
+	isNotFound := errors.Is(queryError, gormErrorNotFound)
+
+	var statusCode int
+
+	if isNotFound {
+		statusCode = http.StatusNotFound
+	} else if queryError != nil {
+		statusCode = http.StatusInternalServerError
+	} else {
+		statusCode = http.StatusOK
+	}
+
+	return statusCode, queryError
 }

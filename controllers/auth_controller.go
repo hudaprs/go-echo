@@ -160,7 +160,7 @@ func (AuthController) Me(c echo.Context) error {
 
 	// Find User
 	user := models.User{}
-	userDetail, statusCode, err := user.GetDetail(int(authenticatedUser.ID))
+	userDetail, statusCode, err := user.Show(authenticatedUser.ID)
 
 	if err != nil && statusCode >= 400 {
 		return helpers.ErrorDynamic(statusCode, err.Error())
@@ -173,17 +173,46 @@ func (AuthController) Me(c echo.Context) error {
 // @param 		echo.Context
 // @return		error
 func (AuthController) Refresh(c echo.Context) error {
-	form := new(models.UserRefreshForm)
+	// Headers
+	refreshTokenHeader := c.Request().Header["X-Auth-Refresh-Token"]
 
-	if err := c.Bind(form); err != nil {
+	// Check if no refresh token header
+	if len(refreshTokenHeader) == 0 {
+		var validationResponse []helpers.ValidationResponse
+
+		validationResponse = append(validationResponse, helpers.ValidationResponse{
+			Field:   "X-Auth-Refresh-Token",
+			Message: "X-Auth-Refresh-Token header is required",
+		})
+
+		return helpers.ErrorValidation(validationResponse)
+	}
+
+	// Find refresh token
+	refreshTokenHeaderString := refreshTokenHeader[0]
+	refreshTokenModel := models.RefreshToken{}
+	refreshTokenDetail, statusCode, err := refreshTokenModel.ShowByRefreshToken(refreshTokenHeaderString)
+	if err != nil && statusCode >= 400 {
+		return helpers.ErrorDynamic(statusCode, err.Error())
+	}
+
+	// Find user model
+	userModel := models.User{}
+	userDetail, statusCode, err := userModel.Show(refreshTokenDetail.UserID)
+	if err != nil && statusCode >= 400 {
+		return helpers.ErrorDynamic(statusCode, err.Error())
+	}
+
+	// Refresh the token
+	token, newRefreshToken, err := generateToken(userDetail)
+	if err != nil {
 		return helpers.ErrorBadRequest(err.Error())
 	}
 
-	if err := c.Validate(form); err != nil {
-		return err
-	}
-
-	return helpers.Ok(http.StatusOK, "Token refreshed", models.UserLoginResponse{})
+	return helpers.Ok(http.StatusOK, "Token refreshed", models.UserLoginResponse{
+		Token:        token,
+		RefreshToken: newRefreshToken,
+	})
 }
 
 // @description Logout
