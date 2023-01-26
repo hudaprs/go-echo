@@ -18,7 +18,8 @@ type TodoController struct {
 func (TodoController) Index(c echo.Context) error {
 	todo := models.Todo{}
 	authenticatedUser := helpers.JwtGetClaims(c)
-	todoList, err := todo.GetList(authenticatedUser.ID)
+	pagination := helpers.SetPagination(c, helpers.Pagination{})
+	todoList, err := todo.GetList(authenticatedUser.ID, pagination)
 
 	if err != nil {
 		return helpers.ErrorServer(err.Error())

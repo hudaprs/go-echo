@@ -2,6 +2,7 @@ package models
 
 import (
 	"echo-rest/database"
+	"echo-rest/helpers"
 	"errors"
 	"net/http"
 	"time"
@@ -29,13 +30,14 @@ func (Todo) TableName() string {
 	return "todos"
 }
 
-func (Todo) GetList(userId uint) ([]Todo, error) {
+func (Todo) GetList(userId uint, pagination helpers.Pagination) (*helpers.Pagination, error) {
 	db := database.DatabaseConnection()
 	var todoList []Todo
 
-	query := db.Order("updated_at desc").Order("created_at desc").Preload("User").Where(&Todo{UserID: userId}).Find(&todoList)
+	query := db.Scopes(helpers.Paginate(todoList, &pagination, db)).Preload("User").Where(&Todo{UserID: userId}).Find(&todoList)
+	pagination.Rows = todoList
 
-	return todoList, query.Error
+	return &pagination, query.Error
 }
 
 func (Todo) Store(payload TodoForm) (Todo, error) {
