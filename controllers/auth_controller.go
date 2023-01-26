@@ -15,7 +15,7 @@ type AuthController struct{}
 
 // @description Generate token (common token / refresh token)
 // @scope 		Private
-// @param 		user models.User
+// @param 		user models.User, bool rememberMe
 // @return		string (common token), string (refreshToken), error
 func generateToken(user models.User) (string, string, error) {
 	claims := helpers.JwtCustomClaims{
@@ -24,9 +24,9 @@ func generateToken(user models.User) (string, string, error) {
 	}
 	refreshClaims := claims
 
-	// Expire for 15 seconds
+	// Make token expire to 1 hour
 	claims.RegisteredClaims = jwt.RegisteredClaims{
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Second * 15)),
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 1)),
 	}
 
 	// Generate JWT
