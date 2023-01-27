@@ -9,11 +9,11 @@ import (
 )
 
 type Role struct {
-	ID          uint           `gorm:"primaryKey" json:"id"`
-	Name        string         `gorm:"column:name" json:"name"`
-	Permissions datatypes.JSON `gorm:"column:permissions" json:"permissions"`
-	CreatedAt   time.Time      `gorm:"column:created_at" json:"createdAt"`
-	UpdatedAt   time.Time      `gorm:"column:updated_at" json:"updatedAt"`
+	ID          uint                             `gorm:"primaryKey" json:"id"`
+	Name        string                           `gorm:"column:name" json:"name"`
+	Permissions datatypes.JSONType[[]Permission] `gorm:"column:permissions" json:"permissions"`
+	CreatedAt   time.Time                        `gorm:"column:created_at" json:"createdAt"`
+	UpdatedAt   time.Time                        `gorm:"column:updated_at" json:"updatedAt"`
 }
 
 type RoleCreateForm struct {
@@ -21,15 +21,15 @@ type RoleCreateForm struct {
 }
 
 type RoleUpdateForm struct {
-	Name        string         `json:"name" validate:"required"`
-	Permissions datatypes.JSON `json:"permissions" validate:"required"`
+	Name        string                           `json:"name" validate:"required"`
+	Permissions datatypes.JSONType[[]Permission] `json:"permissions" validate:"required"`
 }
 
 func (Role) TableName() string {
 	return "roles"
 }
 
-func (r Role) Index(pagination helpers.Pagination) (*helpers.Pagination, error) {
+func (Role) Index(pagination helpers.Pagination) (*helpers.Pagination, error) {
 	db := database.Connect()
 	var roles []Role
 
@@ -39,11 +39,12 @@ func (r Role) Index(pagination helpers.Pagination) (*helpers.Pagination, error) 
 	return &pagination, query.Error
 }
 
-func (r Role) Store(payload RoleCreateForm) (Role, error) {
+func (Role) Store(payload RoleCreateForm) (Role, error) {
 	db := database.Connect()
+	permission := Permission{}
 	role := Role{
 		Name:        payload.Name,
-		Permissions: datatypes.JSON([]byte(`{"create": false, "read": false, "update": false, "delete": false}`)),
+		Permissions: permission.GeneratePermissions(),
 	}
 
 	query := db.Create(&role)

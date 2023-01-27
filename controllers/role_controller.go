@@ -111,3 +111,12 @@ func (RoleController) Delete(c echo.Context) error {
 
 	return helpers.Ok(http.StatusOK, "Role deleted successfully", deletedRole)
 }
+
+// @description Get permissions list
+// @param 		echo.Context
+// @return		error
+func (RoleController) PermissionList(c echo.Context) error {
+	permission := models.Permission{}
+
+	return helpers.Ok(http.StatusOK, "Get permission list success", permission.GeneratePermissions())
+}
