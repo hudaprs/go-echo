@@ -66,6 +66,6 @@ func DatabaseInit() (*gorm.DB, error) {
 	return db, err
 }
 
-func DatabaseConnection() *gorm.DB {
+func Connect() *gorm.DB {
 	return db
 }

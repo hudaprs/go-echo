@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 type Response struct {
@@ -69,8 +70,8 @@ func Ok(code int, message string, data interface{}) error {
 	})
 }
 
-func ErrorDatabaseNotFound(queryError error, gormErrorNotFound error) (int, error) {
-	isNotFound := errors.Is(queryError, gormErrorNotFound)
+func ErrorDatabaseNotFound(queryError error) (int, error) {
+	isNotFound := errors.Is(queryError, gorm.ErrRecordNotFound)
 
 	var statusCode int
 

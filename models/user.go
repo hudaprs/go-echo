@@ -4,8 +4,6 @@ import (
 	"echo-rest/database"
 	"echo-rest/helpers"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type User struct {
@@ -49,7 +47,7 @@ func (User) TableName() string {
 
 func (User) CheckEmail(email string) (User, int, error) {
 	var user User
-	db := database.DatabaseConnection()
+	db := database.Connect()
 
 	query := db.Where("email = ?", email).First(&user)
 
@@ -59,19 +57,19 @@ func (User) CheckEmail(email string) (User, int, error) {
 }
 
 func (User) Show(id uint) (User, int, error) {
-	db := database.DatabaseConnection()
+	db := database.Connect()
 
 	var user User
 
 	query := db.First(&user, id)
 
-	statusCode, err := helpers.ErrorDatabaseNotFound(query.Error, gorm.ErrRecordNotFound)
+	statusCode, err := helpers.ErrorDatabaseNotFound(query.Error)
 
 	return user, statusCode, err
 }
 
 func (User) Store(payload UserStoreForm) (User, error) {
-	db := database.DatabaseConnection()
+	db := database.Connect()
 
 	hashedPassword, err := helpers.PasswordHash(payload.Password)
 

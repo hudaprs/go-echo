@@ -12,7 +12,7 @@ import (
 type TodoController struct {
 }
 
-// @description Get todo list
+// @description Get data list
 // @param 		echo.Context
 // @return		error
 func (TodoController) Index(c echo.Context) error {
@@ -28,9 +28,9 @@ func (TodoController) Index(c echo.Context) error {
 	return helpers.Ok(http.StatusOK, "Get todo list success", todoList)
 }
 
-// @description Create todo
-// @param 		is echo.Context
-// @return 		error
+// @description Store data
+// @param 		echo.Context
+// @return		error
 func (TodoController) Store(c echo.Context) error {
 	form := new(models.TodoForm)
 
@@ -57,7 +57,7 @@ func (TodoController) Store(c echo.Context) error {
 	return helpers.Ok(http.StatusCreated, "Todo created successfully", createdTodo)
 }
 
-// @description Get todo detail
+// @description Get single data
 // @param 		echo.Context
 // @return		error
 func (TodoController) Show(c echo.Context) error {
@@ -70,7 +70,7 @@ func (TodoController) Show(c echo.Context) error {
 	}
 
 	todo := models.Todo{}
-	todoDetail, statusCode, err := todo.GetDetail(id)
+	todoDetail, statusCode, err := todo.Show(id)
 
 	// Check if not correct user
 	if !todo.IsCorrectUser(authenticatedUser.ID, todoDetail) {
@@ -85,7 +85,7 @@ func (TodoController) Show(c echo.Context) error {
 	return helpers.Ok(http.StatusOK, "Get todo success", todoDetail)
 }
 
-// @description Update todo
+// @description Update data
 // @param 		echo.Context
 // @return		error
 func (TodoController) Update(c echo.Context) error {
@@ -108,7 +108,7 @@ func (TodoController) Update(c echo.Context) error {
 	}
 
 	todo := models.Todo{}
-	todoDetail, statusCode, err := todo.GetDetail(id)
+	todoDetail, statusCode, err := todo.Show(id)
 
 	// Check if not correct user
 	if !todo.IsCorrectUser(authenticatedUser.ID, todoDetail) {
@@ -133,7 +133,7 @@ func (TodoController) Update(c echo.Context) error {
 	return helpers.Ok(http.StatusOK, "Todo updated successfully", todoDetail)
 }
 
-// @description Delete todo
+// @description Delete data
 // @param 		echo.Context
 // @return		error
 func (TodoController) Delete(c echo.Context) error {
@@ -146,7 +146,7 @@ func (TodoController) Delete(c echo.Context) error {
 	}
 
 	todo := models.Todo{}
-	todoDetail, statusCode, err := todo.GetDetail(id)
+	todoDetail, statusCode, err := todo.Show(id)
 
 	// Check if not correct user
 	if !todo.IsCorrectUser(authenticatedUser.ID, todoDetail) {

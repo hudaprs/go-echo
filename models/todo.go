@@ -31,7 +31,7 @@ func (Todo) TableName() string {
 }
 
 func (Todo) GetList(userId uint, pagination helpers.Pagination) (*helpers.Pagination, error) {
-	db := database.DatabaseConnection()
+	db := database.Connect()
 	var todoList []Todo
 
 	query := db.Scopes(helpers.Paginate(todoList, &pagination, db)).Preload("User").Where(&Todo{UserID: userId}).Find(&todoList)
@@ -41,7 +41,7 @@ func (Todo) GetList(userId uint, pagination helpers.Pagination) (*helpers.Pagina
 }
 
 func (Todo) Store(payload TodoForm) (Todo, error) {
-	db := database.DatabaseConnection()
+	db := database.Connect()
 	todo := Todo{
 		Title:     payload.Title,
 		Completed: payload.Completed,
@@ -53,8 +53,8 @@ func (Todo) Store(payload TodoForm) (Todo, error) {
 	return todo, query.Error
 }
 
-func (Todo) GetDetail(id int) (Todo, int, error) {
-	db := database.DatabaseConnection()
+func (Todo) Show(id int) (Todo, int, error) {
+	db := database.Connect()
 
 	var todo Todo
 
@@ -76,7 +76,7 @@ func (Todo) GetDetail(id int) (Todo, int, error) {
 }
 
 func (Todo) Update(todo Todo) error {
-	db := database.DatabaseConnection()
+	db := database.Connect()
 
 	query := db.Save(&todo)
 
@@ -84,7 +84,7 @@ func (Todo) Update(todo Todo) error {
 }
 
 func (Todo) Delete(todo Todo) error {
-	db := database.DatabaseConnection()
+	db := database.Connect()
 
 	query := db.Delete(&todo)
 

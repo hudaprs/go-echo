@@ -5,8 +5,6 @@ import (
 	"echo-rest/helpers"
 	"net/http"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type RefreshToken struct {
@@ -28,7 +26,7 @@ func (RefreshToken) TableName() string {
 }
 
 func (rt RefreshToken) Store(payload RefreshTokenForm) (RefreshToken, error) {
-	db := database.DatabaseConnection()
+	db := database.Connect()
 
 	refreshToken := RefreshToken{
 		UserID:       payload.UserID,
@@ -41,29 +39,29 @@ func (rt RefreshToken) Store(payload RefreshTokenForm) (RefreshToken, error) {
 }
 
 func (RefreshToken) Show(userId uint) (RefreshToken, int, error) {
-	db := database.DatabaseConnection()
+	db := database.Connect()
 	var refreshTokenDetail RefreshToken
 
 	query := db.Where(&RefreshToken{UserID: userId}).First(&refreshTokenDetail)
 
-	statusCode, err := helpers.ErrorDatabaseNotFound(query.Error, gorm.ErrRecordNotFound)
+	statusCode, err := helpers.ErrorDatabaseNotFound(query.Error)
 
 	return refreshTokenDetail, statusCode, err
 }
 
 func (RefreshToken) ShowByRefreshToken(refreshToken string) (RefreshToken, int, error) {
-	db := database.DatabaseConnection()
+	db := database.Connect()
 
 	var refreshTokenDetail RefreshToken
 	query := db.Where(&RefreshToken{RefreshToken: refreshToken}).First(&refreshTokenDetail)
 
-	statusCode, err := helpers.ErrorDatabaseNotFound(query.Error, gorm.ErrRecordNotFound)
+	statusCode, err := helpers.ErrorDatabaseNotFound(query.Error)
 
 	return refreshTokenDetail, statusCode, err
 }
 
 func (RefreshToken) Delete(userId uint) error {
-	db := database.DatabaseConnection()
+	db := database.Connect()
 
 	query := db.Where(&RefreshToken{UserID: userId}).Delete(&RefreshToken{})
 
@@ -71,7 +69,7 @@ func (RefreshToken) Delete(userId uint) error {
 }
 
 func (rt RefreshToken) DeleteByRefreshToken(refreshToken string) (int, error) {
-	db := database.DatabaseConnection()
+	db := database.Connect()
 
 	var refreshTokenDetail RefreshToken
 	query := db.Where(&RefreshToken{RefreshToken: refreshToken}).First(&refreshTokenDetail)
