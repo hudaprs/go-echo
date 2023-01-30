@@ -88,7 +88,6 @@ func (RoleController) Update(c echo.Context) error {
 	}
 
 	roleDetail.Name = form.Name
-	roleDetail.Permissions = form.Permissions
 
 	updatedRole, err := role.Update(roleDetail)
 	if err != nil {
@@ -96,6 +95,46 @@ func (RoleController) Update(c echo.Context) error {
 	}
 
 	return helpers.Ok(http.StatusOK, "Update role success", updatedRole)
+}
+
+// @description Update permission
+// @param 		echo.Context
+// @return		error
+func (RoleController) UpdatePermission(c echo.Context) error {
+	form := new(models.RoleUpdatePermissionForm)
+	if err := c.Bind(form); err != nil {
+		return helpers.ErrorBadRequest(err.Error())
+	}
+	if err := c.Validate(form); err != nil {
+		return err
+	}
+
+	roleId, _ := strconv.Atoi(c.Param("roleId"))
+	role := models.Role{}
+
+	// Get role detail
+	roleDetail, statusCode, err := role.Show(uint(roleId))
+	if err != nil && statusCode >= 400 {
+		return helpers.ErrorDynamic(statusCode, err.Error())
+	}
+
+	// Update permissions
+	var mapRolePermissions []models.RolePermission
+	for _, permission := range form.Permissions {
+		mapRolePermissions = append(mapRolePermissions, models.RolePermission{
+			ID:     permission.ID,
+			RoleID: uint(roleId),
+			Menu:   permission.Menu,
+			Action: []byte(permission.Action),
+		})
+	}
+	roleDetail.RolePermission = mapRolePermissions
+	updatedRole, err := role.UpdatePermission(roleDetail)
+	if err != nil {
+		return helpers.ErrorServer(err.Error())
+	}
+
+	return helpers.Ok(http.StatusOK, "Permissions updated successfully", updatedRole)
 }
 
 // @description Delete data

@@ -46,4 +46,5 @@ func RoutesInit(e *echo.Echo) {
 	role.PATCH("/:id", RoleController.Update)
 	role.DELETE("/:id", RoleController.Delete)
 	role.GET("/permissions", RoleController.PermissionList)
+	role.PATCH("/permissions/:roleId", RoleController.UpdatePermission)
 }
