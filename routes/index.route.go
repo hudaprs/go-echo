@@ -2,7 +2,9 @@ package routes
 
 import (
 	"echo-rest/controllers"
+	"echo-rest/database"
 	"echo-rest/middlewares"
+	"echo-rest/services"
 	"net/http"
 
 	echojwt "github.com/labstack/echo-jwt/v4"
@@ -10,7 +12,17 @@ import (
 )
 
 func RoutesInit(e *echo.Echo) {
+	// Database Connection
+	db := database.Connect()
+
+	// Services
+	RoleService := services.RoleService{DB: db}
+	PermissionService := services.PermissionService{DB: db}
+
+	// Middleware
 	authMiddleware := echojwt.WithConfig(middlewares.JwtConfig())
+
+	// Prefix Route
 	v1 := e.Group("/api/v1")
 
 	e.GET("/", func(c echo.Context) error {
@@ -37,7 +49,7 @@ func RoutesInit(e *echo.Echo) {
 	todos.DELETE("/:id", TodoController.Delete)
 
 	// Role Feature
-	RoleController := controllers.RoleController{}
+	RoleController := controllers.RoleController{RoleService: RoleService}
 	role := v1.Group("/roles")
 	role.Use(authMiddleware)
 	role.GET("", RoleController.Index)
@@ -45,6 +57,10 @@ func RoutesInit(e *echo.Echo) {
 	role.POST("", RoleController.Store)
 	role.PATCH("/:id", RoleController.Update)
 	role.DELETE("/:id", RoleController.Delete)
-	role.GET("/permissions", RoleController.PermissionList)
-	role.PATCH("/permissions/:roleId", RoleController.UpdatePermission)
+
+	// Permission Feature
+	PermissionController := controllers.PermissionController{PermissionService: PermissionService}
+	permission := v1.Group("/permissions")
+	permission.PATCH("/assign", PermissionController.AssignPermissions)
+	permission.GET("", PermissionController.Index)
 }
