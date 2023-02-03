@@ -13,16 +13,18 @@ type RoleService struct {
 }
 
 func (rs *RoleService) Index(pagination helpers.Pagination) (*helpers.Pagination, error) {
-	var roles []models.Role
+	var roles []models.RoleResponse
 
-	query := rs.DB.Scopes(helpers.Paginate(roles, &pagination, rs.DB)).Find(&roles)
+	query := rs.DB.Scopes(helpers.Paginate(roles, &pagination, rs.DB)).Preload("Permissions", func(db *gorm.DB) *gorm.DB {
+		return db.Select("permissions.*, role_permissions.actions").Joins("left join role_permissions on role_permissions.permission_id = permissions.id")
+	}).Find(&roles)
 	pagination.Rows = roles
 
 	return &pagination, query.Error
 }
 
-func (rs *RoleService) Store(payload structs.RoleCreateEditForm) (models.Role, error) {
-	role := models.Role{
+func (rs *RoleService) Store(payload structs.RoleCreateEditForm) (models.RoleResponse, error) {
+	role := models.RoleResponse{
 		Name: payload.Name,
 	}
 
@@ -31,8 +33,8 @@ func (rs *RoleService) Store(payload structs.RoleCreateEditForm) (models.Role, e
 	return role, query.Error
 }
 
-func (rs *RoleService) Show(id uint) (models.Role, int, error) {
-	var role models.Role
+func (rs *RoleService) Show(id uint) (models.RoleResponse, int, error) {
+	var role models.RoleResponse
 
 	query := rs.DB.First(&role, id)
 
@@ -41,14 +43,14 @@ func (rs *RoleService) Show(id uint) (models.Role, int, error) {
 	return role, statusCode, err
 }
 
-func (rs *RoleService) Update(role models.Role) (models.Role, error) {
+func (rs *RoleService) Update(role models.RoleResponse) (models.RoleResponse, error) {
 	query := rs.DB.Save(&role)
 
 	return role, query.Error
 }
 
-func (rs *RoleService) Delete(id uint) (models.Role, int, error) {
-	var role models.Role
+func (rs *RoleService) Delete(id uint) (models.RoleResponse, int, error) {
+	var role models.RoleResponse
 
 	query := rs.DB.First(&role, id).Delete(role)
 

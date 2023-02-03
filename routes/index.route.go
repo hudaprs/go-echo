@@ -61,6 +61,7 @@ func RoutesInit(e *echo.Echo) {
 	// Permission Feature
 	PermissionController := controllers.PermissionController{PermissionService: PermissionService}
 	permission := v1.Group("/permissions")
-	permission.PATCH("/assign", PermissionController.AssignPermissions)
+	permission.Use(authMiddleware)
 	permission.GET("", PermissionController.Index)
+	permission.PATCH("/assign/:roleId", PermissionController.AssignPermissions)
 }

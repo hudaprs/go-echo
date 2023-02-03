@@ -2,6 +2,8 @@ package models
 
 import (
 	"time"
+
+	"gorm.io/datatypes"
 )
 
 type Permission struct {
@@ -20,10 +22,22 @@ type PermissionResponse struct {
 	UpdatedAt string `json:"updatedAt"`
 }
 
+type PermissionWithActionsResponse struct {
+	ID        uint                       `json:"id"`
+	Code      string                     `json:"code"`
+	CreatedAt string                     `json:"createdAt"`
+	Actions   datatypes.JSONType[Action] `json:"actions"`
+	UpdatedAt string                     `json:"updatedAt"`
+}
+
 func (Permission) TableName() string {
 	return "permissions"
 }
 
 func (PermissionResponse) TableName() string {
+	return "permissions"
+}
+
+func (PermissionWithActionsResponse) TableName() string {
 	return "permissions"
 }

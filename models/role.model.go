@@ -14,11 +14,12 @@ type Role struct {
 }
 
 type RoleResponse struct {
-	ID          uint         `json:"id"`
-	Name        string       `json:"name"`
-	Permissions []Permission `json:"permissions"`
-	CreatedAt   time.Time    `json:"createdAt"`
-	UpdatedAt   time.Time    `json:"updatedAt"`
+	ID           uint                            `json:"id"`
+	Name         string                          `json:"name"`
+	PermissionID uint                            `json:"-"`
+	Permissions  []PermissionWithActionsResponse `gorm:"many2many:role_permissions;foreignKey:ID;joinForeignKey:RoleID;References:ID;joinReferences:PermissionID" json:"permissions"`
+	CreatedAt    time.Time                       `json:"createdAt"`
+	UpdatedAt    time.Time                       `json:"updatedAt"`
 }
 
 func (Role) TableName() string {

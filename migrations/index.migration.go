@@ -8,6 +8,7 @@ import (
 )
 
 func InitMigration(db *gorm.DB) {
+
 	// Migration List
 	err := db.AutoMigrate(
 		&models.Todo{},
@@ -15,6 +16,7 @@ func InitMigration(db *gorm.DB) {
 		&models.RefreshToken{},
 		&models.Role{},
 		&models.Permission{},
+		&models.RolePermission{},
 	)
 	if err != nil {
 		panic("Migration: something went wrong when start to migrate" + err.Error())

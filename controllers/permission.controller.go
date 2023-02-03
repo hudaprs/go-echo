@@ -5,6 +5,7 @@ import (
 	"echo-rest/services"
 	"echo-rest/structs"
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
@@ -38,10 +39,12 @@ func (rc PermissionController) AssignPermissions(c echo.Context) error {
 		return err
 	}
 
-	err := rc.PermissionService.AssignPermissions(*form)
+	roleId, _ := strconv.Atoi(c.Param("roleId"))
+
+	rolePermissionList, err := rc.PermissionService.AssignPermissions(uint(roleId), *form)
 	if err != nil {
 		return helpers.ErrorServer(err.Error())
 	}
 
-	return helpers.Ok(http.StatusOK, "Permission assigned successfully", nil)
+	return helpers.Ok(http.StatusOK, "Permission assigned successfully", rolePermissionList)
 }

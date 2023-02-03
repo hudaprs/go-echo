@@ -4,6 +4,7 @@ import (
 	"echo-rest/models"
 	"echo-rest/structs"
 
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -19,17 +20,35 @@ func (ps *PermissionService) Index() ([]models.PermissionResponse, error) {
 	return permissions, query.Error
 }
 
-func (rs *PermissionService) AssignPermissions(payload structs.RoleAssignPermissionsForm) error {
-	var rolePermissionList []models.RolePermission
+func (rs *PermissionService) AssignPermissions(roleId uint, payload structs.RoleAssignPermissionsForm) ([]models.RolePermissionResponse, error) {
+	var existedPermissionList []models.RolePermissionResponse
+	var mergedPermissionList []models.RolePermissionResponse
 
-	for _, rolePermissionPayload := range payload.Permissions {
-		rolePermissionList = append(rolePermissionList, models.RolePermission{
-			RoleID:       rolePermissionPayload.RoleID,
-			PermissionID: rolePermissionPayload.PermissionID,
-		})
+	// Check if theres any permissions existed before
+	// Delete all data, and create an new one
+	query := rs.DB.Where(models.RolePermissionResponse{RoleID: roleId}).Find(&existedPermissionList).Delete(&models.RolePermission{})
+	if query.Error != nil {
+		return []models.RolePermissionResponse{}, query.Error
 	}
 
-	query := rs.DB.Create(&rolePermissionList)
+	// Create New Permissions
+	for _, rolePermissionPayload := range payload.Permissions {
+		mergedPermissionList = append(mergedPermissionList, models.RolePermissionResponse{
+			RoleID:       roleId,
+			PermissionID: rolePermissionPayload.PermissionID,
+			Actions: datatypes.JSONType[models.Action]{
+				Data: rolePermissionPayload.Action,
+			},
+		})
+	}
+	query = rs.DB.Create(&mergedPermissionList)
+	if query.Error != nil {
+		return []models.RolePermissionResponse{}, query.Error
+	}
 
-	return query.Error
+	if len(mergedPermissionList) > 0 {
+		return mergedPermissionList, query.Error
+	} else {
+		return []models.RolePermissionResponse{}, query.Error
+	}
 }
