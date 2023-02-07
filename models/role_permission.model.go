@@ -14,9 +14,9 @@ type Action struct {
 type RolePermission struct {
 	ID           uint                       `gorm:"primaryKey"`
 	RoleID       uint                       `gorm:"column:role_id;"`
-	Role         Role                       `gorm:"foreignKey:RoleID"`
+	Role         Role                       `gorm:"foreignKey:RoleID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	PermissionID uint                       `gorm:"column:permission_id"`
-	Permission   Permission                 `gorm:"foreignKey:PermissionID"`
+	Permission   Permission                 `gorm:"foreignKey:PermissionID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Actions      datatypes.JSONType[Action] `gorm:"column:actions"`
 }
 

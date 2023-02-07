@@ -1,9 +1,6 @@
 package models
 
 import (
-	"echo-rest/database"
-	"echo-rest/helpers"
-	"net/http"
 	"time"
 )
 
@@ -16,75 +13,19 @@ type RefreshToken struct {
 	UpdatedAt    time.Time `gorm:"column:updated_at" json:"updatedAt"`
 }
 
-type RefreshTokenForm struct {
-	UserID       uint   `json:"userId"`
-	RefreshToken string `json:"refreshToken"`
+type RefreshTokenResponse struct {
+	ID           uint      `json:"id"`
+	UserID       uint      `json:"userId"`
+	User         User      `json:"user"`
+	RefreshToken string    `json:"refreshToken"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
 }
 
 func (RefreshToken) TableName() string {
 	return "refresh_tokens"
 }
 
-func (rt RefreshToken) Store(payload RefreshTokenForm) (RefreshToken, error) {
-	db := database.Connect()
-
-	refreshToken := RefreshToken{
-		UserID:       payload.UserID,
-		RefreshToken: payload.RefreshToken,
-	}
-
-	query := db.Create(&refreshToken)
-
-	return refreshToken, query.Error
-}
-
-func (RefreshToken) Show(userId uint) (RefreshToken, int, error) {
-	db := database.Connect()
-	var refreshTokenDetail RefreshToken
-
-	query := db.Where(&RefreshToken{UserID: userId}).First(&refreshTokenDetail)
-
-	statusCode, err := helpers.ErrorDatabaseNotFound(query.Error)
-
-	return refreshTokenDetail, statusCode, err
-}
-
-func (RefreshToken) ShowByRefreshToken(refreshToken string) (RefreshToken, int, error) {
-	db := database.Connect()
-
-	var refreshTokenDetail RefreshToken
-	query := db.Where(&RefreshToken{RefreshToken: refreshToken}).First(&refreshTokenDetail)
-
-	statusCode, err := helpers.ErrorDatabaseNotFound(query.Error)
-
-	return refreshTokenDetail, statusCode, err
-}
-
-func (RefreshToken) Delete(userId uint) error {
-	db := database.Connect()
-
-	query := db.Where(&RefreshToken{UserID: userId}).Delete(&RefreshToken{})
-
-	return query.Error
-}
-
-func (rt RefreshToken) DeleteByRefreshToken(refreshToken string) (int, error) {
-	db := database.Connect()
-
-	var refreshTokenDetail RefreshToken
-	query := db.Where(&RefreshToken{RefreshToken: refreshToken}).First(&refreshTokenDetail)
-
-	if query.Error != nil {
-		return http.StatusInternalServerError, query.Error
-	}
-
-	_, statusCode, err := rt.Show(refreshTokenDetail.UserID)
-
-	if err != nil {
-		return statusCode, err
-	}
-
-	queryDelete := db.Delete(&refreshTokenDetail)
-
-	return statusCode, queryDelete.Error
+func (RefreshTokenResponse) TableName() string {
+	return "refresh_tokens"
 }

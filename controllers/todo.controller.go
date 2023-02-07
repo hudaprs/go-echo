@@ -2,7 +2,8 @@ package controllers
 
 import (
 	"echo-rest/helpers"
-	"echo-rest/models"
+	"echo-rest/services"
+	"echo-rest/structs"
 	"net/http"
 	"strconv"
 
@@ -10,16 +11,16 @@ import (
 )
 
 type TodoController struct {
+	TodoService services.TodoService
 }
 
 // @description Get data list
 // @param 		echo.Context
 // @return		error
-func (TodoController) Index(c echo.Context) error {
-	todo := models.Todo{}
+func (tc TodoController) Index(c echo.Context) error {
 	authenticatedUser := helpers.JwtGetClaims(c)
 	pagination := helpers.SetPagination(c, helpers.Pagination{})
-	todoList, err := todo.GetList(authenticatedUser.ID, pagination)
+	todoList, err := tc.TodoService.Index(authenticatedUser.ID, pagination)
 
 	if err != nil {
 		return helpers.ErrorServer(err.Error())
@@ -31,8 +32,8 @@ func (TodoController) Index(c echo.Context) error {
 // @description Store data
 // @param 		echo.Context
 // @return		error
-func (TodoController) Store(c echo.Context) error {
-	form := new(models.TodoForm)
+func (tc TodoController) Store(c echo.Context) error {
+	form := new(structs.TodoForm)
 
 	if err := c.Bind(form); err != nil {
 		return helpers.ErrorBadRequest(err.Error())
@@ -42,9 +43,8 @@ func (TodoController) Store(c echo.Context) error {
 		return err
 	}
 
-	todo := models.Todo{}
 	authenticatedUser := helpers.JwtGetClaims(c)
-	createdTodo, err := todo.Store(models.TodoForm{
+	createdTodo, err := tc.TodoService.Store(structs.TodoForm{
 		Title:     form.Title,
 		Completed: false,
 		UserID:    authenticatedUser.ID,
@@ -60,7 +60,7 @@ func (TodoController) Store(c echo.Context) error {
 // @description Get single data
 // @param 		echo.Context
 // @return		error
-func (TodoController) Show(c echo.Context) error {
+func (tc TodoController) Show(c echo.Context) error {
 	authenticatedUser := helpers.JwtGetClaims(c)
 	id, err := strconv.Atoi(c.Param("id"))
 
@@ -69,11 +69,10 @@ func (TodoController) Show(c echo.Context) error {
 		return helpers.ErrorBadRequest(err.Error())
 	}
 
-	todo := models.Todo{}
-	todoDetail, statusCode, err := todo.Show(id)
+	todoDetail, statusCode, err := tc.TodoService.Show(id)
 
 	// Check if not correct user
-	if !todo.IsCorrectUser(authenticatedUser.ID, todoDetail) {
+	if !tc.TodoService.IsCorrectUser(authenticatedUser.ID, todoDetail.UserID) {
 		return helpers.ErrorForbidden()
 	}
 
@@ -88,9 +87,9 @@ func (TodoController) Show(c echo.Context) error {
 // @description Update data
 // @param 		echo.Context
 // @return		error
-func (TodoController) Update(c echo.Context) error {
+func (tc TodoController) Update(c echo.Context) error {
 	authenticatedUser := helpers.JwtGetClaims(c)
-	form := new(models.TodoForm)
+	form := new(structs.TodoForm)
 
 	if err := c.Bind(form); err != nil {
 		return helpers.ErrorBadRequest(err.Error())
@@ -107,11 +106,10 @@ func (TodoController) Update(c echo.Context) error {
 		return helpers.ErrorBadRequest(err.Error())
 	}
 
-	todo := models.Todo{}
-	todoDetail, statusCode, err := todo.Show(id)
+	todoDetail, statusCode, err := tc.TodoService.Show(id)
 
 	// Check if not correct user
-	if !todo.IsCorrectUser(authenticatedUser.ID, todoDetail) {
+	if !tc.TodoService.IsCorrectUser(authenticatedUser.ID, todoDetail.UserID) {
 		return helpers.ErrorForbidden()
 	}
 
@@ -124,7 +122,7 @@ func (TodoController) Update(c echo.Context) error {
 	todoDetail.Completed = form.Completed
 
 	// Save record
-	updateErr := todo.Update(todoDetail)
+	updateErr := tc.TodoService.Update(todoDetail)
 
 	if updateErr != nil {
 		return helpers.ErrorServer(updateErr.Error())
@@ -136,7 +134,7 @@ func (TodoController) Update(c echo.Context) error {
 // @description Delete data
 // @param 		echo.Context
 // @return		error
-func (TodoController) Delete(c echo.Context) error {
+func (tc TodoController) Delete(c echo.Context) error {
 	authenticatedUser := helpers.JwtGetClaims(c)
 	id, err := strconv.Atoi(c.Param("id"))
 
@@ -145,11 +143,10 @@ func (TodoController) Delete(c echo.Context) error {
 		return helpers.ErrorBadRequest(err.Error())
 	}
 
-	todo := models.Todo{}
-	todoDetail, statusCode, err := todo.Show(id)
+	todoDetail, statusCode, err := tc.TodoService.Show(id)
 
 	// Check if not correct user
-	if !todo.IsCorrectUser(authenticatedUser.ID, todoDetail) {
+	if !tc.TodoService.IsCorrectUser(authenticatedUser.ID, todoDetail.UserID) {
 		return helpers.ErrorForbidden()
 	}
 
@@ -157,7 +154,7 @@ func (TodoController) Delete(c echo.Context) error {
 		return helpers.ErrorDynamic(statusCode, err.Error())
 	}
 
-	deleteErr := todo.Delete(todoDetail)
+	deleteErr := tc.TodoService.Delete(todoDetail)
 
 	if deleteErr != nil {
 		return helpers.ErrorServer(deleteErr.Error())

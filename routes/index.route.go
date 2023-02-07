@@ -16,6 +16,9 @@ func RoutesInit(e *echo.Echo) {
 	db := database.Connect()
 
 	// Services
+	AuthService := services.AuthService{DB: db}
+	RefreshTokenService := services.RefreshTokenService{DB: db}
+	TodoService := services.TodoService{DB: db}
 	RoleService := services.RoleService{DB: db}
 	PermissionService := services.PermissionService{DB: db}
 
@@ -30,7 +33,10 @@ func RoutesInit(e *echo.Echo) {
 	})
 
 	// Auth Feature
-	AuthController := controllers.AuthController{}
+	AuthController := controllers.AuthController{
+		AuthService:         AuthService,
+		RefreshTokenService: RefreshTokenService,
+	}
 	auth := v1.Group("/auth")
 	auth.POST("/register", AuthController.Register)
 	auth.POST("/login", AuthController.Login)
@@ -39,7 +45,7 @@ func RoutesInit(e *echo.Echo) {
 	auth.GET("/me", AuthController.Me, authMiddleware)
 
 	// Todo Feature
-	TodoController := controllers.TodoController{}
+	TodoController := controllers.TodoController{TodoService: TodoService}
 	todos := v1.Group("/todos")
 	todos.Use(authMiddleware)
 	todos.GET("", TodoController.Index)
