@@ -9,6 +9,8 @@ type Role struct {
 	Name         string       `gorm:"column:name"`
 	PermissionID uint         `gorm:"-"`
 	Permissions  []Permission `gorm:"many2many:role_permissions;foreignKey:ID;joinForeignKey:RoleID;References:ID;joinReferences:PermissionID"`
+	UserID       uint         `gorm:"-"`
+	Users        []User       `gorm:"many2many:role_users;foreignKey:ID;joinForeignKey:RoleID;References:ID;joinReferences:UserID"`
 	CreatedAt    time.Time    `gorm:"column:created_at"`
 	UpdatedAt    time.Time    `gorm:"column:updated_at"`
 }

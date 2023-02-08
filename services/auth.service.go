@@ -21,9 +21,9 @@ func (as *AuthService) CheckEmail(email string) (models.UserResponse, int, error
 	return user, findUserStatusCode, query.Error
 }
 
-func (as *AuthService) Show(id uint) (models.UserResponse, int, error) {
-	var user models.UserResponse
-	query := as.DB.First(&user, id)
+func (as *AuthService) Show(id uint) (models.UserWithRoleResponse, int, error) {
+	var user models.UserWithRoleResponse
+	query := as.DB.Preload("Roles").First(&user, id)
 
 	statusCode, err := helpers.ErrorDatabaseNotFound(query.Error)
 

@@ -60,3 +60,33 @@ func (rs *RoleService) Delete(id uint) (models.RoleWithPermissionResponse, int, 
 
 	return role, statusCode, err
 }
+
+func (rs *RoleService) AssignRoles(userId uint, payload structs.RoleAssignUsersForm) ([]models.RoleUserResponse, error) {
+	var mergedRoleList []models.RoleUserResponse
+
+	// Check if theres any permissions existed before
+	// Delete all data, and create an new one
+	query := rs.DB.Where(models.RoleUserResponse{UserID: userId}).Delete(&models.RoleUser{})
+	if query.Error != nil {
+		return []models.RoleUserResponse{}, query.Error
+	}
+
+	// Create New Permissions
+	for _, roleUserPayload := range payload.Roles {
+		mergedRoleList = append(mergedRoleList, models.RoleUserResponse{
+			UserID: userId,
+			RoleID: roleUserPayload,
+		})
+	}
+	query = rs.DB.Create(&mergedRoleList)
+	if query.Error != nil {
+		return []models.RoleUserResponse{}, query.Error
+	}
+
+	if len(mergedRoleList) > 0 {
+		return mergedRoleList, query.Error
+	} else {
+		return []models.RoleUserResponse{}, query.Error
+	}
+
+}

@@ -14,3 +14,7 @@ type RolePermissionForm struct {
 type RoleAssignPermissionsForm struct {
 	Permissions []RolePermissionForm `json:"permissions" validate:"required,dive,required"`
 }
+
+type RoleAssignUsersForm struct {
+	Roles []uint `json:"roles" validate:"required"`
+}

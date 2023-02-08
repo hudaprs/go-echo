@@ -17,6 +17,7 @@ func RoutesInit(e *echo.Echo) {
 
 	// Services
 	AuthService := services.AuthService{DB: db}
+	UserService := services.UserService{DB: db}
 	RefreshTokenService := services.RefreshTokenService{DB: db}
 	TodoService := services.TodoService{DB: db}
 	RoleService := services.RoleService{DB: db}
@@ -43,6 +44,16 @@ func RoutesInit(e *echo.Echo) {
 	auth.GET("/refresh", AuthController.Refresh)
 	auth.GET("/logout", AuthController.Logout)
 	auth.GET("/me", AuthController.Me, authMiddleware)
+
+	// User Feature
+	UserController := controllers.UserController{UserService: UserService}
+	user := v1.Group("/users")
+	user.Use(authMiddleware)
+	user.GET("", UserController.Index)
+	user.GET("/:id", UserController.Show)
+	user.POST("", UserController.Store)
+	user.PATCH("/:id", UserController.Update)
+	user.DELETE("/:id", UserController.Delete)
 
 	// Todo Feature
 	TodoController := controllers.TodoController{TodoService: TodoService}

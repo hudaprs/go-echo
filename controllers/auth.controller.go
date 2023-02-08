@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"echo-rest/helpers"
-	"echo-rest/models"
 	"echo-rest/services"
 	"echo-rest/structs"
 	"net/http"
@@ -20,12 +19,11 @@ type AuthController struct {
 
 // @description Generate token (common token / refresh token)
 // @scope 		Private
-// @param 		user models.UserResponse, bool rememberMe
+// @param 		userId uint
 // @return		string (common token), string (refreshToken), error
-func generateToken(user models.UserResponse) (string, string, error) {
+func generateToken(userId uint) (string, string, error) {
 	claims := helpers.JwtCustomClaims{
-		ID:    user.ID,
-		Email: user.Email,
+		ID: userId,
 	}
 	refreshClaims := claims
 
@@ -136,7 +134,7 @@ func (ac AuthController) Login(c echo.Context) error {
 	}
 
 	// Generate token
-	token, refreshToken, err := generateToken(userDetail)
+	token, refreshToken, err := generateToken(userDetail.ID)
 
 	if err != nil {
 		return helpers.ErrorBadRequest(err.Error())
@@ -213,7 +211,7 @@ func (ac AuthController) Refresh(c echo.Context) error {
 	}
 
 	// Generate new token
-	token, newRefreshToken, err := generateToken(userDetail)
+	token, newRefreshToken, err := generateToken(userDetail.ID)
 	if err != nil {
 		return helpers.ErrorBadRequest(err.Error())
 	}
