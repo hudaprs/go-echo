@@ -12,15 +12,6 @@ type AuthService struct {
 	DB *gorm.DB
 }
 
-func (as *AuthService) CheckEmail(email string) (models.UserResponse, int, error) {
-	var user models.UserResponse
-	query := as.DB.Where("email = ?", email).First(&user)
-
-	findUserStatusCode := helpers.ValidateNotFoundData(query.Error)
-
-	return user, findUserStatusCode, query.Error
-}
-
 func (as *AuthService) Show(id uint) (models.UserWithRoleResponse, int, error) {
 	var user models.UserWithRoleResponse
 	query := as.DB.Preload("Roles").First(&user, id)

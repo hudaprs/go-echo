@@ -37,6 +37,7 @@ func RoutesInit(e *echo.Echo) {
 	AuthController := controllers.AuthController{
 		AuthService:         AuthService,
 		RefreshTokenService: RefreshTokenService,
+		UserService:         UserService,
 	}
 	auth := v1.Group("/auth")
 	auth.POST("/register", AuthController.Register)

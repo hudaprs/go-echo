@@ -14,6 +14,7 @@ import (
 
 type AuthController struct {
 	AuthService         services.AuthService
+	UserService         services.UserService
 	RefreshTokenService services.RefreshTokenService
 }
 
@@ -77,19 +78,20 @@ func getRefreshToken(c echo.Context) (string, []helpers.ValidationResponse) {
 // @return		error
 func (ac AuthController) Register(c echo.Context) error {
 	form := new(structs.UserStoreForm)
-
 	if err := c.Bind(form); err != nil {
 		return helpers.ErrorBadRequest(err.Error())
 	}
-
 	if err := c.Validate(form); err != nil {
 		return err
 	}
 
-	_, userDetailStatusCode, _ := ac.AuthService.CheckEmail(form.Email)
-
-	if userDetailStatusCode == 200 {
-		return helpers.ErrorBadRequest("Email already exists")
+	// Check for email
+	isEmailExists, statusCode, _, err := ac.UserService.CheckEmail(form.Email)
+	if statusCode >= 400 && err != nil {
+		return helpers.ErrorDynamic(statusCode, err.Error())
+	}
+	if isEmailExists {
+		return helpers.ErrorBadRequest("Email already used")
 	}
 
 	createdUser, err := ac.AuthService.Store(*form)
@@ -106,24 +108,24 @@ func (ac AuthController) Register(c echo.Context) error {
 // @return		error
 func (ac AuthController) Login(c echo.Context) error {
 	form := new(structs.UserLoginForm)
-
 	if err := c.Bind(form); err != nil {
 		return helpers.ErrorBadRequest(err.Error())
 	}
-
 	if err := c.Validate(form); err != nil {
 		return err
 	}
 
-	userDetail, userDetailStatusCode, _ := ac.AuthService.CheckEmail(form.Email)
-
 	// Check if user not exists
-	if userDetailStatusCode == 404 {
+	isEmailExists, statusCode, userDetail, err := ac.UserService.CheckEmail(form.Email)
+	if statusCode >= 400 && err != nil {
+		return helpers.ErrorDynamic(statusCode, err.Error())
+	}
+	if !isEmailExists {
 		return helpers.ErrorBadRequest("Invalid credentials")
 	}
 
 	// Check if user exists
-	if userDetailStatusCode == 200 {
+	if isEmailExists {
 		// Then compare the password
 		isPasswordCorrect := helpers.PasswordCompare(form.Password, userDetail.Password)
 

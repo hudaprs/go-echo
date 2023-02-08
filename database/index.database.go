@@ -67,5 +67,5 @@ func DatabaseInit() (*gorm.DB, error) {
 }
 
 func Connect() *gorm.DB {
-	return db
+	return db.Debug()
 }

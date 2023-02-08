@@ -3,6 +3,7 @@ package services
 import (
 	"echo-rest/helpers"
 	"echo-rest/models"
+	"echo-rest/queries"
 	"echo-rest/structs"
 
 	"gorm.io/gorm"
@@ -12,14 +13,10 @@ type RoleService struct {
 	DB *gorm.DB
 }
 
-func mapPermissions(db *gorm.DB) *gorm.DB {
-	return db.Select("permissions.*, role_permissions.actions").Joins("left join role_permissions on role_permissions.permission_id = permissions.id")
-}
-
 func (rs *RoleService) Index(pagination helpers.Pagination) (*helpers.Pagination, error) {
 	var roles []models.RoleWithPermissionResponse
 
-	query := rs.DB.Scopes(helpers.Paginate(roles, &pagination, rs.DB)).Preload("Permissions", mapPermissions).Find(&roles)
+	query := rs.DB.Scopes(helpers.Paginate(roles, &pagination, rs.DB)).Preload("Permissions", queries.PermissionsMap).Find(&roles)
 	pagination.Rows = roles
 
 	return &pagination, query.Error
@@ -38,7 +35,7 @@ func (rs *RoleService) Store(payload structs.RoleCreateEditForm) (models.RoleRes
 func (rs *RoleService) Show(id uint) (models.RoleWithPermissionResponse, int, error) {
 	var role models.RoleWithPermissionResponse
 
-	query := rs.DB.Preload("Permissions", mapPermissions).First(&role, id)
+	query := rs.DB.Preload("Permissions", queries.PermissionsMap).First(&role, id)
 
 	statusCode, err := helpers.ErrorDatabaseNotFound(query.Error)
 
@@ -54,7 +51,7 @@ func (rs *RoleService) Update(role models.RoleWithPermissionResponse) (models.Ro
 func (rs *RoleService) Delete(id uint) (models.RoleWithPermissionResponse, int, error) {
 	var role models.RoleWithPermissionResponse
 
-	query := rs.DB.Preload("Permissions", mapPermissions).First(&role, id).Delete(role)
+	query := rs.DB.Preload("Permissions", queries.PermissionsMap).First(&role, id).Delete(role)
 
 	statusCode, err := helpers.ErrorDatabaseNotFound(query.Error)
 

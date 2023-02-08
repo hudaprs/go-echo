@@ -19,3 +19,15 @@ type UserLoginResponse struct {
 	Token        string `json:"token"`
 	RefreshToken string `json:"refreshToken"`
 }
+
+type UserCreateForm struct {
+	Name  string `json:"name" validate:"required"`
+	Email string `json:"email" validate:"required,email"`
+	Roles []uint `json:"roles" validate:"required"`
+}
+
+type UserAttrsFind struct {
+	ID    uint
+	Name  string
+	Email string
+}
