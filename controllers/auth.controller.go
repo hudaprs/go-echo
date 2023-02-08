@@ -86,10 +86,7 @@ func (ac AuthController) Register(c echo.Context) error {
 	}
 
 	// Check for email
-	isEmailExists, statusCode, _, err := ac.UserService.CheckEmail(form.Email)
-	if statusCode >= 400 && err != nil {
-		return helpers.ErrorDynamic(statusCode, err.Error())
-	}
+	isEmailExists, _, _, err := ac.UserService.CheckEmail(form.Email)
 	if isEmailExists {
 		return helpers.ErrorBadRequest("Email already used")
 	}

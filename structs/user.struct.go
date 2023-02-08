@@ -20,7 +20,8 @@ type UserLoginResponse struct {
 	RefreshToken string `json:"refreshToken"`
 }
 
-type UserCreateForm struct {
+type UserCreateEditForm struct {
+	ID    *uint
 	Name  string `json:"name" validate:"required"`
 	Email string `json:"email" validate:"required,email"`
 	Roles []uint `json:"roles" validate:"required"`

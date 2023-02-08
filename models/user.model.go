@@ -29,6 +29,7 @@ type UserWithRoleResponse struct {
 	Name      string         `json:"name"`
 	Email     string         `json:"email"`
 	Password  string         `json:"-"`
+	RoleID    uint           `gorm:"-" json:"-"`
 	Roles     []RoleResponse `gorm:"many2many:role_users;foreignKey:ID;joinForeignKey:UserID;References:ID;joinReferences:RoleID" json:"roles"`
 	CreatedAt time.Time      `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`

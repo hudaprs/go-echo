@@ -32,7 +32,7 @@ func (uc UserController) Index(c echo.Context) error {
 // @param 		echo.Context
 // @return		error
 func (uc UserController) Store(c echo.Context) error {
-	form := new(structs.UserCreateForm)
+	form := new(structs.UserCreateEditForm)
 	if err := c.Bind(form); err != nil {
 		return helpers.ErrorBadRequest(err.Error())
 	}
@@ -41,13 +41,13 @@ func (uc UserController) Store(c echo.Context) error {
 	}
 
 	// Check user email
-	isEmailExists, _, _, _ := uc.UserService.CheckEmail(form.Email)
-	if isEmailExists {
+	_, userDetailStatusCode, _ := uc.UserService.Show(structs.UserAttrsFind{Email: form.Email})
+	if userDetailStatusCode == 200 {
 		return helpers.ErrorBadRequest("Email already used")
 	}
 
 	// Create new user
-	createdUser, err := uc.UserService.Store(structs.UserCreateForm{
+	createdUser, err := uc.UserService.StoreOrUpdate(structs.UserCreateEditForm{
 		Name:  form.Name,
 		Email: form.Email,
 		Roles: form.Roles,
@@ -81,7 +81,47 @@ func (uc UserController) Show(c echo.Context) error {
 // @param 		echo.Context
 // @return		error
 func (uc UserController) Update(c echo.Context) error {
-	return helpers.Ok(http.StatusOK, "Update data success", nil)
+	id, _ := (strconv.Atoi(c.Param("id")))
+	uintId := uint(id)
+
+	form := new(structs.UserCreateEditForm)
+	if err := c.Bind(form); err != nil {
+		return helpers.ErrorBadRequest(err.Error())
+	}
+	if err := c.Validate(form); err != nil {
+		return err
+	}
+
+	// Get user detail by id
+	userDetailById, userDetailByIdStatusCode, err := uc.UserService.Show(structs.UserAttrsFind{ID: uintId})
+
+	// Check email
+	if userDetailById.Email != form.Email {
+		// Check again if user update the email it-self
+		userDetailByEmail, _, _ := uc.UserService.Show(structs.UserAttrsFind{Email: form.Email})
+		if userDetailByEmail.Email == form.Email {
+			return helpers.ErrorBadRequest("Email already used")
+
+		}
+	}
+
+	// Check if user that will be updated not found
+	if userDetailByIdStatusCode >= 400 && err != nil {
+		return helpers.ErrorDynamic(userDetailByIdStatusCode, err.Error())
+	}
+
+	// Update selected user
+	updatedUser, err := uc.UserService.StoreOrUpdate(structs.UserCreateEditForm{
+		ID:    &userDetailById.ID,
+		Name:  form.Name,
+		Email: form.Email,
+		Roles: form.Roles,
+	})
+	if err != nil {
+		return helpers.ErrorServer(err.Error())
+	}
+
+	return helpers.Ok(http.StatusCreated, "User updated successfully", updatedUser)
 }
 
 // @description Delete data

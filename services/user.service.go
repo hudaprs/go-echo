@@ -3,7 +3,6 @@ package services
 import (
 	"echo-rest/helpers"
 	"echo-rest/models"
-	"echo-rest/queries"
 	"echo-rest/structs"
 
 	"gorm.io/gorm"
@@ -16,13 +15,13 @@ type UserService struct {
 func (us *UserService) Index(pagination helpers.Pagination) (*helpers.Pagination, error) {
 	var users []models.UserWithRoleResponse
 
-	query := us.DB.Scopes(helpers.Paginate(users, &pagination, us.DB)).Preload("Roles", queries.RolesMap).Find(&users)
+	query := us.DB.Scopes(helpers.Paginate(users, &pagination, us.DB)).Preload("Roles").Find(&users)
 	pagination.Rows = users
 
 	return &pagination, query.Error
 }
 
-func (us *UserService) Store(payload structs.UserCreateForm) (models.UserWithRoleResponse, error) {
+func (us *UserService) StoreOrUpdate(payload structs.UserCreateEditForm) (models.UserWithRoleResponse, error) {
 	var user models.UserWithRoleResponse
 	var roles []models.RoleResponse
 
@@ -32,20 +31,42 @@ func (us *UserService) Store(payload structs.UserCreateForm) (models.UserWithRol
 		return models.UserWithRoleResponse{}, err
 	}
 
-	// Create new user
+	// Assign value
+	if payload.ID != nil {
+		user.ID = *payload.ID
+	}
 	user.Name = payload.Name
 	user.Email = payload.Email
-	user.Password = hashedPassword
-	if err := us.DB.Save(&user); err.Error != nil {
-		return user, err.Error
+	if payload.ID == nil {
+		user.Password = hashedPassword
 	}
 
-	// Load roles
-	if err := us.DB.Find(&roles, payload.Roles); err.Error != nil {
-		return user, err.Error
+	// Create new user
+	if payload.ID == nil {
+		if err := us.DB.Create(&user); err.Error != nil {
+			return user, err.Error
+		}
+	} else {
+		// Update user
+		if err := us.DB.Updates(&user); err.Error != nil {
+			return user, err.Error
+		}
 	}
 
-	// Assign role to newest user
+	// Check if theres any roles from payload
+	// If no, let var roles blank
+	if len(payload.Roles) > 0 {
+		if err := us.DB.Where(payload.Roles).Find(&roles); err.Error != nil {
+			return user, err.Error
+		}
+	}
+
+	// Force to clear roles associated to users
+	if err := us.DB.Model(&user).Association("Roles").Clear(); err != nil {
+		return user, err
+	}
+
+	// Force to create new roles after create / update
 	if err := us.DB.Model(&user).Association("Roles").Append(roles); err != nil {
 		return user, err
 	}
@@ -60,10 +81,6 @@ func (us *UserService) Show(payload structs.UserAttrsFind) (models.UserWithRoleR
 	queryStatusCode := helpers.ValidateNotFoundData(query.Error)
 
 	return user, queryStatusCode, query.Error
-}
-
-func (us *UserService) Update() {
-	//
 }
 
 func (us *UserService) Delete(payload structs.UserAttrsFind) (models.UserWithRoleResponse, int, error) {
