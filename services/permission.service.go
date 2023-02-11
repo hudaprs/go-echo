@@ -33,12 +33,20 @@ func (rs *PermissionService) AssignPermissions(roleId uint, payload structs.Role
 
 	// Create New Permissions
 	for _, rolePermissionPayload := range payload.Permissions {
+		var permissionDetail models.Permission
+		if query := rs.DB.Find(&permissionDetail, models.Permission{ID: rolePermissionPayload.ID}); query.Error != nil {
+			return []models.RolePermissionResponse{}, query.Error
+		}
+
 		mergedPermissionList = append(mergedPermissionList, models.RolePermissionResponse{
-			RoleID:         roleId,
-			PermissionCode: rolePermissionPayload.Code,
+			RoleID:       roleId,
+			PermissionID: rolePermissionPayload.ID,
 			Actions: datatypes.JSONType[models.Action]{
 				Data: rolePermissionPayload.Action,
 			},
+
+			// Append permission code to API response
+			Code: permissionDetail.Code,
 		})
 	}
 	query = rs.DB.Create(&mergedPermissionList)
