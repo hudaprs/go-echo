@@ -34,8 +34,8 @@ func (rs *PermissionService) AssignPermissions(roleId uint, payload structs.Role
 	// Create New Permissions
 	for _, rolePermissionPayload := range payload.Permissions {
 		mergedPermissionList = append(mergedPermissionList, models.RolePermissionResponse{
-			RoleID:       roleId,
-			PermissionID: rolePermissionPayload.PermissionID,
+			RoleID:         roleId,
+			PermissionCode: rolePermissionPayload.Code,
 			Actions: datatypes.JSONType[models.Action]{
 				Data: rolePermissionPayload.Action,
 			},

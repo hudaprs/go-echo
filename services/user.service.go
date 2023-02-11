@@ -33,7 +33,10 @@ func (us *UserService) StoreOrUpdate(payload structs.UserCreateEditForm) (models
 
 	// Assign value
 	if payload.ID != nil {
-		user.ID = *payload.ID
+		query := us.DB.Find(&user, payload.ID)
+		if query.Error != nil {
+			return user, query.Error
+		}
 	}
 	user.Name = payload.Name
 	user.Email = payload.Email
@@ -41,16 +44,9 @@ func (us *UserService) StoreOrUpdate(payload structs.UserCreateEditForm) (models
 		user.Password = hashedPassword
 	}
 
-	// Create new user
-	if payload.ID == nil {
-		if err := us.DB.Create(&user); err.Error != nil {
-			return user, err.Error
-		}
-	} else {
-		// Update user
-		if err := us.DB.Updates(&user); err.Error != nil {
-			return user, err.Error
-		}
+	// Create / Update new user
+	if err := us.DB.Save(&user); err.Error != nil {
+		return user, err.Error
 	}
 
 	// Check if theres any roles from payload
@@ -67,8 +63,10 @@ func (us *UserService) StoreOrUpdate(payload structs.UserCreateEditForm) (models
 	}
 
 	// Force to create new roles after create / update
-	if err := us.DB.Model(&user).Association("Roles").Append(roles); err != nil {
-		return user, err
+	if len(roles) > 0 {
+		if err := us.DB.Model(&user).Association("Roles").Append(roles); err != nil {
+			return user, err
+		}
 	}
 
 	return user, nil

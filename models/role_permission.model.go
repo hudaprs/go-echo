@@ -12,19 +12,18 @@ type Action struct {
 }
 
 type RolePermission struct {
-	ID           uint                       `gorm:"primaryKey"`
-	RoleID       uint                       `gorm:"column:role_id;"`
-	Role         Role                       `gorm:"foreignKey:RoleID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	PermissionID uint                       `gorm:"column:permission_id"`
-	Permission   Permission                 `gorm:"foreignKey:PermissionID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Actions      datatypes.JSONType[Action] `gorm:"column:actions"`
+	ID             uint                       `gorm:"primaryKey"`
+	RoleID         uint                       `gorm:"column:role_id;"`
+	Role           Role                       `gorm:"foreignKey:RoleID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	PermissionCode string                     `gorm:"column:permission_code"`
+	Actions        datatypes.JSONType[Action] `gorm:"column:actions"`
 }
 
 type RolePermissionResponse struct {
-	ID           uint                       `json:"id"`
-	RoleID       uint                       `json:"roleId"`
-	PermissionID uint                       `json:"permissionId"`
-	Actions      datatypes.JSONType[Action] `json:"actions"`
+	ID             uint                       `json:"id"`
+	RoleID         uint                       `json:"-"`
+	PermissionCode string                     `json:"permissionCode"`
+	Actions        datatypes.JSONType[Action] `json:"actions"`
 }
 
 func (RolePermission) TableName() string {

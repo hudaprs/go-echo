@@ -16,7 +16,7 @@ type RoleService struct {
 func (rs *RoleService) Index(pagination helpers.Pagination) (*helpers.Pagination, error) {
 	var roles []models.RoleWithPermissionResponse
 
-	query := rs.DB.Scopes(helpers.Paginate(roles, &pagination, rs.DB)).Preload("Permissions", queries.PermissionsMap).Find(&roles)
+	query := rs.DB.Scopes(helpers.Paginate(roles, &pagination, rs.DB)).Preload("Permissions").Find(&roles)
 	pagination.Rows = roles
 
 	return &pagination, query.Error
