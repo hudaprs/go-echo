@@ -7,9 +7,8 @@ import (
 type Role struct {
 	ID          uint             `gorm:"primaryKey"`
 	Name        string           `gorm:"column:name"`
-	Permissions []RolePermission `gorm:"foreignKey:RoleID"`
-	UserID      uint             `gorm:"-"`
-	Users       []User           `gorm:"many2many:role_users;foreignKey:ID;joinForeignKey:RoleID;References:ID;joinReferences:UserID"`
+	Permissions []RolePermission `gorm:"-;foreignKey:RoleID;references:ID"`
+	Users       []RoleUser       `gorm:"-;foreignKey:RoleID;references:ID"`
 	CreatedAt   time.Time        `gorm:"column:created_at"`
 	UpdatedAt   time.Time        `gorm:"column:updated_at"`
 }
@@ -24,7 +23,7 @@ type RoleResponse struct {
 type RoleWithPermissionResponse struct {
 	ID          uint                     `json:"id"`
 	Name        string                   `json:"name"`
-	Permissions []RolePermissionResponse `gorm:"foreignKey:RoleID" json:"permissions"`
+	Permissions []RolePermissionResponse `gorm:"foreignKey:RoleID;references:ID" json:"permissions"`
 	CreatedAt   time.Time                `json:"createdAt"`
 	UpdatedAt   time.Time                `json:"updatedAt"`
 }

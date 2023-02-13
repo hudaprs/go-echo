@@ -3,6 +3,7 @@ package services
 import (
 	"echo-rest/helpers"
 	"echo-rest/models"
+	"echo-rest/queries"
 	"echo-rest/structs"
 
 	"gorm.io/gorm"
@@ -15,7 +16,7 @@ type UserService struct {
 func (us *UserService) Index(pagination helpers.Pagination) (*helpers.Pagination, error) {
 	var users []models.UserWithRoleResponse
 
-	query := us.DB.Scopes(helpers.Paginate(users, &pagination, us.DB)).Preload("Roles").Find(&users)
+	query := us.DB.Scopes(helpers.Paginate(users, &pagination, us.DB)).Scopes(queries.RoleUserPreload()).Find(&users)
 	pagination.Rows = users
 
 	return &pagination, query.Error
@@ -49,6 +50,9 @@ func (us *UserService) StoreOrUpdate(payload structs.UserCreateEditForm) (models
 		return user, err.Error
 	}
 
+	// Assign payload.ID to user.id
+	payload.ID = &user.ID
+
 	// Check if theres any roles from payload
 	// If no, let var roles blank
 	if len(payload.Roles) > 0 {
@@ -57,25 +61,47 @@ func (us *UserService) StoreOrUpdate(payload structs.UserCreateEditForm) (models
 		}
 	}
 
-	// Force to clear roles associated to users
-	if err := us.DB.Model(&user).Association("Roles").Clear(); err != nil {
-		return user, err
+	// Force to clear previous roles
+	// Ignore when creating user
+	if query := us.DB.Where(models.RoleUser{UserID: *payload.ID}).Delete(&models.RoleUser{}); query.Error != nil {
+		return user, query.Error
 	}
 
 	// Force to create new roles after create / update
+	var assignedUserRoles []models.RoleUserResponse
 	if len(roles) > 0 {
-		if err := us.DB.Model(&user).Association("Roles").Append(roles); err != nil {
-			return user, err
+		for _, role := range roles {
+			newUserRole := &models.RoleUserResponse{
+				RoleID: role.ID,
+				UserID: *payload.ID,
+				Name:   role.Name,
+			}
+
+			if query := us.DB.Create(newUserRole); query.Error != nil {
+				return user, query.Error
+			}
+
+			// Map new data id to be role id
+			newUserRole.ID = role.ID
+
+			assignedUserRoles = append(assignedUserRoles, *newUserRole)
 		}
 	}
 
-	return user, nil
+	return models.UserWithRoleResponse{
+		ID:        user.ID,
+		Name:      user.Name,
+		Email:     user.Email,
+		Roles:     assignedUserRoles,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}, nil
 }
 
 func (us *UserService) Show(payload structs.UserAttrsFind) (models.UserWithRoleResponse, int, error) {
 	var user models.UserWithRoleResponse
 
-	query := us.DB.Preload("Roles").Where("id = ?", payload.ID).Or("name = ?", payload.Name).Or("email = ?", payload.Email).First(&user)
+	query := us.DB.Scopes(queries.RoleUserPreload()).Where("id = ?", payload.ID).Or("name = ?", payload.Name).Or("email = ?", payload.Email).First(&user)
 	queryStatusCode := helpers.ValidateNotFoundData(query.Error)
 
 	return user, queryStatusCode, query.Error
@@ -84,7 +110,7 @@ func (us *UserService) Show(payload structs.UserAttrsFind) (models.UserWithRoleR
 func (us *UserService) Delete(payload structs.UserAttrsFind) (models.UserWithRoleResponse, int, error) {
 	var user models.UserWithRoleResponse
 
-	query := us.DB.Preload("Roles").Where("id = ?", payload.ID).Or("name = ?", payload.Name).Or("email = ?", payload.Email).First(&user).Delete(user)
+	query := us.DB.Scopes(queries.RoleUserPreload()).Where("id = ?", payload.ID).Or("name = ?", payload.Name).Or("email = ?", payload.Email).First(&user).Delete(user)
 	queryStatusCode := helpers.ValidateNotFoundData(query.Error)
 
 	return user, queryStatusCode, query.Error

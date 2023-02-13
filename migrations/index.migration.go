@@ -15,11 +15,11 @@ func InitMigration(db *gorm.DB) {
 		&models.RefreshToken{},
 		&models.Role{},
 		&models.Permission{},
-		&models.RolePermission{},
 		&models.RoleUser{},
+		&models.RolePermission{},
 	)
 	if err != nil {
-		panic("Migration: something went wrong when start to migrate" + err.Error())
+		panic("Migration: something went wrong when start to migrate " + err.Error())
 	}
 
 	fmt.Println("Migration: successfully migrate models to database")

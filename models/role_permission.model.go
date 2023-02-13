@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"gorm.io/datatypes"
 )
 
@@ -18,6 +20,8 @@ type RolePermission struct {
 	PermissionID uint                       `gorm:"column:permission_id"`
 	Permission   Permission                 `gorm:"foreignKey:PermissionID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Actions      datatypes.JSONType[Action] `gorm:"column:actions"`
+	CreatedAt    time.Time                  `gorm:"created_at"`
+	UpdatedAt    time.Time                  `gorm:"updated_at"`
 }
 
 type RolePermissionResponse struct {
@@ -26,6 +30,8 @@ type RolePermissionResponse struct {
 	PermissionID uint                       `json:"-"`
 	Code         string                     `gorm:"<-:false" json:"code"`
 	Actions      datatypes.JSONType[Action] `json:"actions"`
+	CreatedAt    time.Time                  `json:"createdAt"`
+	UpdatedAt    time.Time                  `json:"updatedAt"`
 }
 
 func (RolePermission) TableName() string {

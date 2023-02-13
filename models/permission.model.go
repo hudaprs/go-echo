@@ -9,8 +9,6 @@ import (
 type Permission struct {
 	ID        uint      `gorm:"primaryKey"`
 	Code      string    `gorm:"column:code"`
-	RoleID    uint      `gorm:"-"`
-	Roles     []Role    `gorm:"many2many:role_permissions;foreignKey:ID;joinForeignKey:PermissionID;References:ID;joinReferences:RoleID"`
 	CreatedAt time.Time `gorm:"column:created_at"`
 	UpdatedAt time.Time `gorm:"column:updated_at"`
 }

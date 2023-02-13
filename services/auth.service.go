@@ -12,9 +12,11 @@ type AuthService struct {
 	DB *gorm.DB
 }
 
-func (as *AuthService) Show(id uint) (models.UserWithRoleResponse, int, error) {
-	var user models.UserWithRoleResponse
-	query := as.DB.Preload("Roles").First(&user, id)
+func (as *AuthService) Show(id uint) (models.UserRoleWithPermission, int, error) {
+	var user models.UserRoleWithPermission
+	query := as.DB.Preload("Roles", func(db *gorm.DB) *gorm.DB {
+		return db.Joins("left join roles on roles.id = role_users.user_id").Select("role_users.*, roles.name")
+	}).First(&user, id)
 
 	statusCode, err := helpers.ErrorDatabaseNotFound(query.Error)
 
