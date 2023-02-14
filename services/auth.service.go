@@ -3,6 +3,7 @@ package services
 import (
 	"echo-rest/helpers"
 	"echo-rest/models"
+	"echo-rest/queries"
 	"echo-rest/structs"
 
 	"gorm.io/gorm"
@@ -14,9 +15,7 @@ type AuthService struct {
 
 func (as *AuthService) Show(id uint) (models.UserRoleWithPermission, int, error) {
 	var user models.UserRoleWithPermission
-	query := as.DB.Preload("Roles", func(db *gorm.DB) *gorm.DB {
-		return db.Joins("left join roles on roles.id = role_users.user_id").Select("role_users.*, roles.name")
-	}).First(&user, id)
+	query := as.DB.Scopes(queries.RoleUserWithPermissionPreload()).First(&user, id)
 
 	statusCode, err := helpers.ErrorDatabaseNotFound(query.Error)
 

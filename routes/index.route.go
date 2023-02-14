@@ -38,6 +38,7 @@ func RoutesInit(e *echo.Echo) {
 		AuthService:         AuthService,
 		RefreshTokenService: RefreshTokenService,
 		UserService:         UserService,
+		RoleService:         RoleService,
 	}
 	auth := v1.Group("/auth")
 	auth.POST("/register", AuthController.Register)
@@ -45,6 +46,7 @@ func RoutesInit(e *echo.Echo) {
 	auth.GET("/refresh", AuthController.Refresh)
 	auth.GET("/logout", AuthController.Logout)
 	auth.GET("/me", AuthController.Me, authMiddleware)
+	auth.PATCH("/activate-role/:roleId", AuthController.ActivateRole, authMiddleware)
 
 	// User Feature
 	UserController := controllers.UserController{UserService: UserService}

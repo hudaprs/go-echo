@@ -11,3 +11,11 @@ func RoleUserPreload() func(*gorm.DB) *gorm.DB {
 		})
 	}
 }
+
+// Preload role of users with role permissions
+// This is used for roles, permissions and users tables (many2many)
+func RoleUserWithPermissionPreload() func(*gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Scopes(RoleUserPreload()).Scopes(RolePermissionPreload("Roles.Permissions"))
+	}
+}

@@ -14,9 +14,9 @@ type UserService struct {
 }
 
 func (us *UserService) Index(pagination helpers.Pagination) (*helpers.Pagination, error) {
-	var users []models.UserWithRoleResponse
+	var users []models.UserResponse
 
-	query := us.DB.Scopes(helpers.Paginate(users, &pagination, us.DB)).Scopes(queries.RoleUserPreload()).Find(&users)
+	query := us.DB.Scopes(helpers.Paginate(users, &pagination, us.DB)).Find(&users)
 	pagination.Rows = users
 
 	return &pagination, query.Error

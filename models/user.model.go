@@ -34,12 +34,13 @@ type UserWithRoleResponse struct {
 }
 
 type UserRoleWithPermission struct {
-	ID        uint      `json:"id"`
-	Name      string    `json:"name"`
-	Email     string    `json:"email"`
-	Password  string    `json:"-"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	ID        uint                             `json:"id"`
+	Name      string                           `json:"name"`
+	Email     string                           `json:"email"`
+	Password  string                           `json:"-"`
+	Roles     []RoleUserWithPermissionResponse `gorm:"foreignKey:UserID;references:ID" json:"roles"`
+	CreatedAt time.Time                        `json:"createdAt"`
+	UpdatedAt time.Time                        `json:"updatedAt"`
 }
 
 func (User) TableName() string {

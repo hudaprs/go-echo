@@ -4,8 +4,10 @@ import (
 	"echo-rest/helpers"
 	"echo-rest/services"
 	"echo-rest/structs"
+	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -15,6 +17,7 @@ import (
 type AuthController struct {
 	AuthService         services.AuthService
 	UserService         services.UserService
+	RoleService         services.RoleService
 	RefreshTokenService services.RefreshTokenService
 }
 
@@ -86,7 +89,7 @@ func (ac AuthController) Register(c echo.Context) error {
 	}
 
 	// Check for email
-	isEmailExists, _, _, err := ac.UserService.CheckEmail(form.Email)
+	isEmailExists, _, _, _ := ac.UserService.CheckEmail(form.Email)
 	if isEmailExists {
 		return helpers.ErrorBadRequest("Email already used")
 	}
@@ -238,4 +241,19 @@ func (ac AuthController) Logout(c echo.Context) error {
 	}
 
 	return helpers.Ok(http.StatusOK, "You have successfully logout", nil)
+}
+
+// @description Activate selected role
+// @param 		echo.Context
+// @return		error
+func (rc AuthController) ActivateRole(c echo.Context) error {
+	authenticatedUser := helpers.JwtGetClaims(c)
+	roleId, _ := strconv.Atoi(c.Param("roleId"))
+
+	roleDetail, statusCode, err := rc.RoleService.ActivateRole(uint(roleId), authenticatedUser.ID)
+	if err != nil && statusCode >= 400 {
+		return helpers.ErrorDynamic(statusCode, err.Error())
+	}
+
+	return helpers.Ok(http.StatusOK, fmt.Sprintf("%s role has been successfully activated", roleDetail.Name), roleDetail)
 }
