@@ -21,11 +21,11 @@ type PermissionResponse struct {
 }
 
 type PermissionWithActionsResponse struct {
-	ID        uint                       `json:"id"`
-	Code      string                     `json:"code"`
-	CreatedAt string                     `json:"createdAt"`
-	Actions   datatypes.JSONType[Action] `json:"actions"`
-	UpdatedAt string                     `json:"updatedAt"`
+	ID        uint                        `json:"id"`
+	Code      string                      `json:"code"`
+	CreatedAt string                      `json:"createdAt"`
+	Actions   datatypes.JSONType[Actions] `json:"actions"`
+	UpdatedAt string                      `json:"updatedAt"`
 }
 
 func (Permission) TableName() string {

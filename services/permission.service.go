@@ -41,8 +41,8 @@ func (rs *PermissionService) AssignPermissions(roleId uint, payload structs.Role
 		mergedPermissionList = append(mergedPermissionList, models.RolePermissionResponse{
 			RoleID:       roleId,
 			PermissionID: rolePermissionPayload.ID,
-			Actions: datatypes.JSONType[models.Action]{
-				Data: rolePermissionPayload.Action,
+			Actions: datatypes.JSONType[models.Actions]{
+				Data: rolePermissionPayload.Actions,
 			},
 
 			// Append permission code to API response

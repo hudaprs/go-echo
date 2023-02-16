@@ -7,8 +7,8 @@ type RoleCreateEditForm struct {
 }
 
 type RolePermissionForm struct {
-	ID     uint          `json:"id" validate:"required,numeric"`
-	Action models.Action `json:"action"`
+	ID      uint           `json:"id" validate:"required,numeric"`
+	Actions models.Actions `json:"actions"`
 }
 
 type RoleAssignPermissionsForm struct {
