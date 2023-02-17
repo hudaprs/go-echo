@@ -20,6 +20,11 @@ type RoleResponse struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
+type RoleDropdownResponse struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
+}
+
 type RoleWithPermissionResponse struct {
 	ID          uint                     `json:"id"`
 	Name        string                   `json:"name"`
@@ -33,6 +38,10 @@ func (Role) TableName() string {
 }
 
 func (RoleResponse) TableName() string {
+	return "roles"
+}
+
+func (RoleDropdownResponse) TableName() string {
 	return "roles"
 }
 

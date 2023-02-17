@@ -138,3 +138,14 @@ func (rs *RoleService) ActivateRole(roleId uint, userId uint) (models.RoleRespon
 
 	return roleDetail, statusCode, err
 }
+
+func (rs *RoleService) Dropdown() ([]models.RoleDropdownResponse, error) {
+	var roleDropdownList []models.RoleDropdownResponse
+	var err error
+
+	if query := rs.DB.Order("name asc").Find(&roleDropdownList); query.Error != nil {
+		err = query.Error
+	}
+
+	return roleDropdownList, err
+}

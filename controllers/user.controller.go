@@ -12,6 +12,7 @@ import (
 
 type UserController struct {
 	UserService services.UserService
+	RoleService services.RoleService
 }
 
 // @description Get data list
@@ -140,4 +141,16 @@ func (uc UserController) Delete(c echo.Context) error {
 	}
 
 	return helpers.Ok(http.StatusOK, "User deleted successfully", user)
+}
+
+// @description Dropdown data
+// @param 		echo.Context
+// @return		error
+func (uc UserController) RoleDropdown(c echo.Context) error {
+	roleList, err := uc.RoleService.Dropdown()
+	if err != nil {
+		return helpers.ErrorServer(err.Error())
+	}
+
+	return helpers.Ok(http.StatusOK, "Get role list success", roleList)
 }

@@ -16,13 +16,11 @@ type RoleUser struct {
 }
 
 type RoleUserResponse struct {
-	ID        uint      `json:"id"`
-	RoleID    uint      `json:"-"`
-	UserID    uint      `json:"-"`
-	Name      string    `gorm:"<-:false" json:"name"`
-	IsActive  bool      `json:"isActive"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	ID       uint   `json:"id"`
+	RoleID   uint   `json:"-"`
+	UserID   uint   `json:"-"`
+	Name     string `gorm:"<-:false" json:"name"`
+	IsActive bool   `json:"isActive"`
 }
 
 type RoleUserWithPermissionResponse struct {
@@ -32,8 +30,6 @@ type RoleUserWithPermissionResponse struct {
 	Name        string                   `gorm:"<-:false" json:"name"`
 	Permissions []RolePermissionResponse `gorm:"<-:false;foreignKey:RoleID;references:RoleID" json:"permissions"`
 	IsActive    bool                     `json:"isActive"`
-	CreatedAt   time.Time                `json:"createdAt"`
-	UpdatedAt   time.Time                `json:"updatedAt"`
 }
 
 func (RoleUser) TableName() string {

@@ -49,7 +49,10 @@ func RoutesInit(e *echo.Echo) {
 	auth.PATCH("/activate-role/:roleId", AuthController.ActivateRole, authMiddleware)
 
 	// User Feature
-	UserController := controllers.UserController{UserService: UserService}
+	UserController := controllers.UserController{
+		UserService: UserService,
+		RoleService: RoleService,
+	}
 	user := v1.Group("/users")
 	user.Use(authMiddleware)
 	user.GET("", UserController.Index)
@@ -57,6 +60,7 @@ func RoutesInit(e *echo.Echo) {
 	user.POST("", UserController.Store)
 	user.PATCH("/:id", UserController.Update)
 	user.DELETE("/:id", UserController.Delete)
+	user.GET("/roles", UserController.RoleDropdown)
 
 	// Todo Feature
 	TodoController := controllers.TodoController{TodoService: TodoService}
