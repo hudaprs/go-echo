@@ -46,7 +46,7 @@ func RoutesInit(e *echo.Echo) {
 	auth.GET("/refresh", AuthController.Refresh)
 	auth.GET("/logout", AuthController.Logout)
 	auth.GET("/me", AuthController.Me, authMiddleware)
-	auth.PATCH("/activate-role/:roleId", AuthController.ActivateRole, authMiddleware)
+	auth.PATCH("/roles/activate/:roleId", AuthController.ActivateRole, authMiddleware)
 
 	// User Feature
 	UserController := controllers.UserController{
