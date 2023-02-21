@@ -3,13 +3,15 @@ package routes
 import (
 	"echo-rest/controllers"
 	"echo-rest/database"
-	"echo-rest/middlewares"
 	"echo-rest/services"
 	"net/http"
 
-	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 )
+
+type RouteGroup struct {
+	V1 *echo.Group
+}
 
 func RoutesInit(e *echo.Echo) {
 	// Database Connection
@@ -23,9 +25,6 @@ func RoutesInit(e *echo.Echo) {
 	RoleService := services.RoleService{DB: db}
 	PermissionService := services.PermissionService{DB: db}
 
-	// Middleware
-	authMiddleware := echojwt.WithConfig(middlewares.JwtConfig())
-
 	// Prefix Route
 	v1 := e.Group("/api/v1")
 
@@ -34,58 +33,30 @@ func RoutesInit(e *echo.Echo) {
 	})
 
 	// Auth Feature
-	AuthController := controllers.AuthController{
+	authController := controllers.AuthController{
 		AuthService:         AuthService,
 		RefreshTokenService: RefreshTokenService,
 		UserService:         UserService,
 		RoleService:         RoleService,
 	}
-	auth := v1.Group("/auth")
-	auth.POST("/register", AuthController.Register)
-	auth.POST("/login", AuthController.Login)
-	auth.GET("/refresh", AuthController.Refresh)
-	auth.GET("/logout", AuthController.Logout)
-	auth.GET("/me", AuthController.Me, authMiddleware)
-	auth.PATCH("/roles/activate/:roleId", AuthController.ActivateRole, authMiddleware)
+	AuthRoute(RouteGroup{V1: v1}, authController)
 
 	// User Feature
-	UserController := controllers.UserController{
+	userController := controllers.UserController{
 		UserService: UserService,
 		RoleService: RoleService,
 	}
-	user := v1.Group("/users")
-	user.Use(authMiddleware)
-	user.GET("", UserController.Index)
-	user.GET("/:id", UserController.Show)
-	user.POST("", UserController.Store)
-	user.PATCH("/:id", UserController.Update)
-	user.DELETE("/:id", UserController.Delete)
-	user.GET("/roles", UserController.RoleDropdown)
+	UserRoute(RouteGroup{V1: v1}, userController)
 
 	// Todo Feature
-	TodoController := controllers.TodoController{TodoService: TodoService}
-	todos := v1.Group("/todos")
-	todos.Use(authMiddleware)
-	todos.GET("", TodoController.Index)
-	todos.GET("/:id", TodoController.Show)
-	todos.POST("", TodoController.Store)
-	todos.PATCH("/:id", TodoController.Update)
-	todos.DELETE("/:id", TodoController.Delete)
+	todoController := controllers.TodoController{TodoService: TodoService}
+	TodoRoute(RouteGroup{V1: v1}, todoController)
 
 	// Role Feature
-	RoleController := controllers.RoleController{RoleService: RoleService}
-	role := v1.Group("/roles")
-	role.Use(authMiddleware)
-	role.GET("", RoleController.Index)
-	role.GET("/:id", RoleController.Show)
-	role.POST("", RoleController.Store)
-	role.PATCH("/:id", RoleController.Update)
-	role.DELETE("/:id", RoleController.Delete)
+	roleController := controllers.RoleController{RoleService: RoleService}
+	RoleRoute(RouteGroup{V1: v1}, roleController)
 
 	// Permission Feature
-	PermissionController := controllers.PermissionController{PermissionService: PermissionService}
-	permission := v1.Group("/permissions")
-	permission.Use(authMiddleware)
-	permission.GET("", PermissionController.Index)
-	permission.PATCH("/assign/:roleId", PermissionController.AssignPermissions)
+	permissionController := controllers.PermissionController{PermissionService: PermissionService}
+	PermissionRoute(RouteGroup{V1: v1}, permissionController)
 }
