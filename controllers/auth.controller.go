@@ -235,10 +235,7 @@ func (ac AuthController) Logout(c echo.Context) error {
 	}
 
 	// Remove refresh token
-	statusCode, refreshTokenDeleteErr := ac.RefreshTokenService.DeleteByRefreshToken(refreshTokenHeaderString)
-	if refreshTokenDeleteErr != nil {
-		return helpers.ErrorDynamic(statusCode, refreshTokenDeleteErr.Error())
-	}
+	ac.RefreshTokenService.DeleteByRefreshToken(refreshTokenHeaderString)
 
 	return helpers.Ok(http.StatusOK, "You have successfully logout", nil)
 }

@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"gorm.io/datatypes"
 )
 
@@ -18,6 +20,8 @@ type RolePermission struct {
 	PermissionID uint                        `gorm:"column:permission_id"`
 	Permission   Permission                  `gorm:"foreignKey:PermissionID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Actions      datatypes.JSONType[Actions] `gorm:"column:actions"`
+	CreatedAt    time.Time                   `gorm:"created_at"`
+	UpdatedAt    time.Time                   `gorm:"updated_at"`
 }
 
 type RolePermissionResponse struct {
