@@ -13,6 +13,77 @@ type UserService struct {
 	DB *gorm.DB
 }
 
+func (us *UserService) createRoleUser(roleIds []uint, userId uint) ([]models.RoleUserResponse, error) {
+	roleUserResponse := []models.RoleUserResponse{}
+
+	// Check if user didn't include payload
+	if len(roleIds) == 0 {
+		if query := us.DB.Where("user_id = ?", userId).Delete(&models.RoleUserResponse{}); query.Error != nil {
+			return roleUserResponse, query.Error
+		}
+	}
+
+	// Check if user already have role before
+	// If user didn't sent the previous role, remove, but assign that new one
+	if query := us.DB.Where("user_id = ?", userId).Where("role_id NOT IN ?", roleIds).Delete(&models.RoleUserResponse{}); query.Error != nil {
+		return roleUserResponse, query.Error
+	}
+
+	// Check if user have existing role
+	var existedUserRoles []models.RoleUser
+	if query := us.DB.Where(models.RoleUser{UserID: userId}).Where("role_id IN ?", roleIds).Find(&existedUserRoles); query.Error != nil {
+		return roleUserResponse, query.Error
+	}
+
+	// Find unique role that never be assigned before to user
+	var assignedRoleIds []uint
+	for _, roleId := range roleIds {
+		// Make identifier to skip if not exists
+		skip := false
+		for _, existedUserRole := range existedUserRoles {
+			// If data found
+			// Just don't do anything
+			if roleId == existedUserRole.RoleID {
+				// If data match, force to true, don't do anything
+				skip = true
+				break
+			}
+		}
+
+		// If role not found, just make a new one
+		if !skip {
+			assignedRoleIds = append(assignedRoleIds, roleId)
+		}
+	}
+
+	// Check if theres any unique role that user didn't assign before
+	// Create that unique roles and assign to specific users
+	if len(assignedRoleIds) > 0 {
+		for _, roleId := range assignedRoleIds {
+			// Check if role exists
+			if query := us.DB.First(&models.Role{}, roleId); query.Error != nil {
+				return roleUserResponse, query.Error
+			}
+
+			newUserRole := &models.RoleUserResponse{
+				RoleID: roleId,
+				UserID: userId,
+			}
+
+			if query := us.DB.Create(newUserRole); query.Error != nil {
+				return roleUserResponse, query.Error
+			}
+		}
+	}
+
+	// Look up new assigned role through database
+	if query := us.DB.Select("role_users.*, roles.name, roles.id").Where("user_id = ?", userId).Joins("left join roles ON roles.id = role_users.role_id").Order("created_at desc").Find(&roleUserResponse); query.Error != nil {
+		return roleUserResponse, query.Error
+	}
+
+	return roleUserResponse, nil
+}
+
 func (us *UserService) Index(pagination helpers.Pagination) (*helpers.Pagination, error) {
 	var users []models.UserResponse
 
@@ -22,9 +93,9 @@ func (us *UserService) Index(pagination helpers.Pagination) (*helpers.Pagination
 	return &pagination, query.Error
 }
 
-func (us *UserService) StoreOrUpdate(payload structs.UserCreateEditForm) (models.UserWithRoleResponse, error) {
+func (us *UserService) StoreOrUpdate(payload structs.UserCreateEditForm, isCreate bool) (models.UserWithRoleResponse, error) {
 	var user models.UserWithRoleResponse
-	var roles []models.RoleResponse
+	var assignedUserRoles []models.RoleUserResponse
 
 	// Make default has password for the first time creating an user
 	hashedPassword, err := helpers.PasswordHash("password")
@@ -53,40 +124,12 @@ func (us *UserService) StoreOrUpdate(payload structs.UserCreateEditForm) (models
 	// Assign payload.ID to user.id
 	payload.ID = &user.ID
 
-	// Check if theres any roles from payload
-	// If no, let var roles blank
-	if len(payload.Roles) > 0 {
-		if err := us.DB.Where(payload.Roles).Find(&roles); err.Error != nil {
-			return user, err.Error
-		}
+	// Create or Update user role
+	userRoles, err := us.createRoleUser(payload.Roles, *payload.ID)
+	if err != nil {
+		return user, err
 	}
-
-	// Force to clear previous roles
-	// Ignore when creating user
-	if query := us.DB.Where(models.RoleUser{UserID: *payload.ID}).Delete(&models.RoleUser{}); query.Error != nil {
-		return user, query.Error
-	}
-
-	// Force to create new roles after create / update
-	var assignedUserRoles []models.RoleUserResponse
-	if len(roles) > 0 {
-		for _, role := range roles {
-			newUserRole := &models.RoleUserResponse{
-				RoleID: role.ID,
-				UserID: *payload.ID,
-				Name:   role.Name,
-			}
-
-			if query := us.DB.Create(newUserRole); query.Error != nil {
-				return user, query.Error
-			}
-
-			// Map new data id to be role id
-			newUserRole.ID = role.ID
-
-			assignedUserRoles = append(assignedUserRoles, *newUserRole)
-		}
-	}
+	assignedUserRoles = userRoles
 
 	return models.UserWithRoleResponse{
 		ID:        user.ID,

@@ -16,11 +16,13 @@ type RoleUser struct {
 }
 
 type RoleUserResponse struct {
-	ID       uint   `json:"id"`
-	RoleID   uint   `json:"-"`
-	UserID   uint   `json:"-"`
-	Name     string `gorm:"<-:false" json:"name"`
-	IsActive bool   `json:"isActive"`
+	ID        uint      `json:"id"`
+	RoleID    uint      `json:"-"`
+	UserID    uint      `json:"-"`
+	Name      string    `gorm:"<-:false" json:"name"`
+	IsActive  bool      `json:"isActive"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 type RoleUserWithPermissionResponse struct {

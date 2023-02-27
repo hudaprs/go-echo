@@ -4,6 +4,7 @@ import "gorm.io/gorm"
 
 // Preload role of users
 // This is used for roles and users tables (many2many)
+// Using 'UserWithRoleResponse' for the struct
 func RoleUserPreload() func(*gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Preload("Roles", func(preloadDb *gorm.DB) *gorm.DB {
@@ -14,6 +15,7 @@ func RoleUserPreload() func(*gorm.DB) *gorm.DB {
 
 // Preload role of users with role permissions
 // This is used for roles, permissions and users tables (many2many)
+// Using 'UserRoleWithPermission' for the struct
 func RoleUserWithPermissionPreload() func(*gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Scopes(RoleUserPreload()).Scopes(RolePermissionPreload("Roles.Permissions"))
