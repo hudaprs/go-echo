@@ -13,7 +13,7 @@ type UserService struct {
 	DB *gorm.DB
 }
 
-func (us *UserService) createRoleUser(roleIds []uint, userId uint) ([]models.RoleUserResponse, error) {
+func (us *UserService) syncRoleUser(roleIds []uint, userId uint) ([]models.RoleUserResponse, error) {
 	roleUserResponse := []models.RoleUserResponse{}
 
 	// Check if user didn't include payload
@@ -93,7 +93,7 @@ func (us *UserService) Index(pagination helpers.Pagination) (*helpers.Pagination
 	return &pagination, query.Error
 }
 
-func (us *UserService) StoreOrUpdate(payload structs.UserCreateEditForm, isCreate bool) (models.UserWithRoleResponse, error) {
+func (us *UserService) StoreOrUpdate(payload structs.UserCreateEditForm) (models.UserWithRoleResponse, error) {
 	var user models.UserWithRoleResponse
 	var assignedUserRoles []models.RoleUserResponse
 
@@ -125,7 +125,7 @@ func (us *UserService) StoreOrUpdate(payload structs.UserCreateEditForm, isCreat
 	payload.ID = &user.ID
 
 	// Create or Update user role
-	userRoles, err := us.createRoleUser(payload.Roles, *payload.ID)
+	userRoles, err := us.syncRoleUser(payload.Roles, *payload.ID)
 	if err != nil {
 		return user, err
 	}

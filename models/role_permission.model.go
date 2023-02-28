@@ -30,6 +30,8 @@ type RolePermissionResponse struct {
 	PermissionID uint                        `json:"-"`
 	Code         string                      `gorm:"<-:false" json:"code"`
 	Actions      datatypes.JSONType[Actions] `json:"actions"`
+	CreatedAt    time.Time                   `json:"createdAt"`
+	UpdatedAt    time.Time                   `json:"updatedAt"`
 }
 
 func (RolePermission) TableName() string {

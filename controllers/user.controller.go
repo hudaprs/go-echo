@@ -52,7 +52,7 @@ func (uc UserController) Store(c echo.Context) error {
 		Name:  form.Name,
 		Email: form.Email,
 		Roles: form.Roles,
-	}, true)
+	})
 	if err != nil {
 		return helpers.ErrorServer(err.Error())
 	}
@@ -117,7 +117,7 @@ func (uc UserController) Update(c echo.Context) error {
 		Name:  form.Name,
 		Email: form.Email,
 		Roles: form.Roles,
-	}, false)
+	})
 	if err != nil {
 		return helpers.ErrorServer(err.Error())
 	}
