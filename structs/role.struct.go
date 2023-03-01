@@ -1,6 +1,6 @@
 package structs
 
-import "echo-rest/models"
+import "go-echo/models"
 
 type RoleCreateEditForm struct {
 	Name string `json:"name" validate:"required"`

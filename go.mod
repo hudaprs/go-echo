@@ -1,4 +1,4 @@
-module echo-rest
+module go-echo
 
 go 1.19
 

@@ -1,11 +1,11 @@
 package main
 
 import (
-	"echo-rest/database"
-	"echo-rest/environment"
-	"echo-rest/helpers"
-	"echo-rest/migrations"
-	"echo-rest/routes"
+	"go-echo/database"
+	"go-echo/environment"
+	"go-echo/helpers"
+	"go-echo/migrations"
+	"go-echo/routes"
 	"os"
 
 	"github.com/go-playground/validator/v10"

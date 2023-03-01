@@ -1,11 +1,11 @@
 package services
 
 import (
-	"echo-rest/helpers"
-	"echo-rest/models"
-	"echo-rest/queries"
-	"echo-rest/structs"
 	"errors"
+	"go-echo/helpers"
+	"go-echo/models"
+	"go-echo/queries"
+	"go-echo/structs"
 
 	"gorm.io/gorm"
 )

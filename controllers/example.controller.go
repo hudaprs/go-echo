@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"echo-rest/helpers"
-	"echo-rest/services"
+	"go-echo/helpers"
+	"go-echo/services"
 	"net/http"
 
 	"github.com/labstack/echo/v4"

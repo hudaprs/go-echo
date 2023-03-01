@@ -1,10 +1,10 @@
 package controllers
 
 import (
-	"echo-rest/helpers"
-	"echo-rest/services"
-	"echo-rest/structs"
 	"fmt"
+	"go-echo/helpers"
+	"go-echo/services"
+	"go-echo/structs"
 	"net/http"
 	"os"
 	"strconv"

@@ -1,8 +1,8 @@
 package migrations
 
 import (
-	"echo-rest/models"
 	"fmt"
+	"go-echo/models"
 
 	"gorm.io/gorm"
 )

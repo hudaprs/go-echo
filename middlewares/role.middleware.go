@@ -1,9 +1,9 @@
 package middlewares
 
 import (
-	"echo-rest/database"
-	"echo-rest/helpers"
-	"echo-rest/models"
+	"go-echo/database"
+	"go-echo/helpers"
+	"go-echo/models"
 
 	"github.com/labstack/echo/v4"
 )

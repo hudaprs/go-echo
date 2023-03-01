@@ -1,8 +1,8 @@
 package services
 
 import (
-	"echo-rest/models"
-	"echo-rest/structs"
+	"go-echo/models"
+	"go-echo/structs"
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"

@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"echo-rest/controllers"
-	"echo-rest/middlewares"
+	"go-echo/controllers"
+	"go-echo/middlewares"
 )
 
 func AuthRoute(routes RouteGroup, controller controllers.AuthController) {

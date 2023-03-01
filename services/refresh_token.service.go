@@ -1,10 +1,10 @@
 package services
 
 import (
-	"echo-rest/database"
-	"echo-rest/helpers"
-	"echo-rest/models"
-	"echo-rest/structs"
+	"go-echo/database"
+	"go-echo/helpers"
+	"go-echo/models"
+	"go-echo/structs"
 	"net/http"
 
 	"gorm.io/gorm"

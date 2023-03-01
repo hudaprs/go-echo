@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"echo-rest/helpers"
-	"echo-rest/services"
-	"echo-rest/structs"
+	"go-echo/helpers"
+	"go-echo/services"
+	"go-echo/structs"
 	"net/http"
 	"strconv"
 

@@ -1,9 +1,9 @@
 package services
 
 import (
-	"echo-rest/helpers"
-	"echo-rest/models"
-	"echo-rest/structs"
+	"go-echo/helpers"
+	"go-echo/models"
+	"go-echo/structs"
 
 	"gorm.io/gorm"
 )

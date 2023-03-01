@@ -1,10 +1,10 @@
 package services
 
 import (
-	"echo-rest/helpers"
-	"echo-rest/models"
-	"echo-rest/queries"
-	"echo-rest/structs"
+	"go-echo/helpers"
+	"go-echo/models"
+	"go-echo/queries"
+	"go-echo/structs"
 
 	"gorm.io/gorm"
 )
@@ -22,11 +22,10 @@ func (as *AuthService) Show(id uint) (models.UserRoleWithPermission, int, error)
 	return user, statusCode, err
 }
 
-func (as *AuthService) Store(payload structs.UserStoreForm) (models.UserResponse, error) {
+func (as *AuthService) Store(payload structs.UserStoreForm) (*models.UserResponse, error) {
 	hashedPassword, err := helpers.PasswordHash(payload.Password)
-
 	if err != nil {
-		panic("User Store: failed when start to hash password")
+		return nil, err
 	}
 
 	user := models.UserResponse{
@@ -34,8 +33,10 @@ func (as *AuthService) Store(payload structs.UserStoreForm) (models.UserResponse
 		Email:    payload.Email,
 		Password: hashedPassword,
 	}
+	if err := as.DB.Create(&user).Error; err != nil {
+		as.DB.Rollback()
+		return nil, err
+	}
 
-	query := as.DB.Create(&user)
-
-	return user, query.Error
+	return &user, nil
 }

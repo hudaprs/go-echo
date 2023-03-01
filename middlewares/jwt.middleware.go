@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"echo-rest/helpers"
+	"go-echo/helpers"
 	"net/http"
 	"os"
 
