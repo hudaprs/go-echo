@@ -1,7 +1,7 @@
 package services
 
 import (
-	"errors"
+	"go-echo/database"
 	"go-echo/helpers"
 	"go-echo/models"
 	"go-echo/queries"
@@ -60,13 +60,13 @@ func (rs *RoleService) Delete(id uint) (models.RoleResponse, int, error) {
 }
 
 func (rs *RoleService) AssignRoles(userId uint, payload structs.RoleAssignUsersForm) ([]models.RoleUserResponse, error) {
-	var mergedRoleList []models.RoleUserResponse
+	mergedRoleList := []models.RoleUserResponse{}
 
 	// Check if theres any permissions existed before
 	// Delete all data, and create an new one
 	query := rs.DB.Where(models.RoleUserResponse{UserID: userId}).Delete(&models.RoleUser{})
 	if query.Error != nil {
-		return []models.RoleUserResponse{}, query.Error
+		return mergedRoleList, query.Error
 	}
 
 	// Create New Permissions
@@ -76,76 +76,76 @@ func (rs *RoleService) AssignRoles(userId uint, payload structs.RoleAssignUsersF
 			RoleID: roleUserPayload,
 		})
 	}
+
 	query = rs.DB.Create(&mergedRoleList)
 	if query.Error != nil {
-		return []models.RoleUserResponse{}, query.Error
+		return mergedRoleList, query.Error
 	}
 
-	if len(mergedRoleList) > 0 {
-		return mergedRoleList, query.Error
-	} else {
-		return []models.RoleUserResponse{}, query.Error
-	}
+	return mergedRoleList, query.Error
 }
 
-func (rs *RoleService) ActivateRole(roleId uint, userId uint) (models.RoleResponse, int, error) {
+func (rs *RoleService) ActivateRole(roleId uint, userId uint) (*models.RoleResponse, int, error) {
 	var roleMappingDetail *models.RoleUser
-	var roleUserList []models.RoleUser
 	var roleDetail models.RoleResponse
-	var err error
-	var statusCode int
+	tx, err := database.BeginTransaction(rs.DB)
+	if err != nil {
+		return nil, 500, err
+	}
 
-	if query := rs.DB.Where(&models.RoleUser{RoleID: roleId, UserID: userId}).First(&roleMappingDetail); query.Error != nil {
-		err = query.Error
+	// Find role inside mapping table
+	// Find role by specific role id and user id
+	if err := rs.DB.Where(&models.RoleUser{RoleID: roleId, UserID: userId}).First(&roleMappingDetail).Error; err != nil {
+		statusCode, err := helpers.ErrorDatabaseNotFound(err)
+		return nil, statusCode, err
 	}
 
 	// Check if user have specific role
 	if roleMappingDetail != nil {
-		// Check if user have roles
-		if query := rs.DB.Where(&models.RoleUser{UserID: userId}).Not(models.RoleUser{RoleID: roleId}).Find(&roleUserList); query.Error != nil {
-			err = query.Error
-		}
-
-		// If user have any roles, make other role status inactive
-		if len(roleUserList) > 0 {
-			for _, roleUser := range roleUserList {
-				roleUser.IsActive = false
-				if query := rs.DB.Save(&roleUser); query.Error != nil {
-					err = query.Error
-				}
-			}
-		}
-
 		// Update the selected role to be active
 		roleMappingDetail.IsActive = true
-		if query := rs.DB.Save(&roleMappingDetail); query.Error != nil {
-			err = query.Error
+		if err := tx.Save(&roleMappingDetail).Error; err != nil {
+			return nil, 500, err
 		}
 
 		// Assign role detail to be selected role by the user
-		if query := rs.DB.First(&roleDetail, roleMappingDetail.RoleID); query.Error != nil {
-			err = query.Error
+		if err := rs.DB.First(&roleDetail, roleMappingDetail.RoleID).Error; err != nil {
+			statusCode, err := helpers.ErrorDatabaseNotFound(err)
+			return nil, statusCode, err
+		}
+
+		// Find roles by specific user
+		// Find roles that user have, but not the selected (the user selected role to be activated)
+		var roleUserListExceptTheSelected []models.RoleUser
+		if err := rs.DB.Where(&models.RoleUser{UserID: userId}).Not(models.RoleUser{RoleID: roleId}).Find(&roleUserListExceptTheSelected).Error; err != nil {
+			return nil, 500, err
+		}
+
+		// If user have any roles, make other role status inactive
+		if len(roleUserListExceptTheSelected) > 0 {
+			for _, roleUser := range roleUserListExceptTheSelected {
+				roleUser.IsActive = false
+				if err := tx.Save(&roleUser).Error; err != nil {
+					return nil, 500, err
+				}
+			}
 		}
 	}
 
-	if err != nil {
-		statusCode = 500
+	// Commit the transaction
+	if err := tx.Commit().Error; err != nil {
+		return nil, 500, err
 	}
 
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		statusCode = 404
-	}
-
-	return roleDetail, statusCode, err
+	return &roleDetail, 200, nil
 }
 
 func (rs *RoleService) Dropdown() ([]models.RoleDropdownResponse, error) {
-	var roleDropdownList []models.RoleDropdownResponse
-	var err error
+	roleDropdownList := []models.RoleDropdownResponse{}
 
-	if query := rs.DB.Order("name asc").Find(&roleDropdownList); query.Error != nil {
-		err = query.Error
+	if err := rs.DB.Order("name asc").Find(&roleDropdownList).Error; err != nil {
+		return roleDropdownList, err
 	}
 
-	return roleDropdownList, err
+	return roleDropdownList, nil
 }

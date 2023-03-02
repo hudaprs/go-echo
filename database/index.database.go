@@ -67,7 +67,21 @@ func DatabaseInit() (*gorm.DB, error) {
 }
 
 func Connect() *gorm.DB {
-	tx := db.Debug()
+	db := db.Debug()
 
-	return tx
+	return db
+}
+
+func BeginTransaction(db *gorm.DB) (*gorm.DB, error) {
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		return nil, err
+	}
+
+	return tx, nil
 }

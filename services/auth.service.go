@@ -34,7 +34,6 @@ func (as *AuthService) Store(payload structs.UserStoreForm) (*models.UserRespons
 		Password: hashedPassword,
 	}
 	if err := as.DB.Create(&user).Error; err != nil {
-		as.DB.Rollback()
 		return nil, err
 	}
 

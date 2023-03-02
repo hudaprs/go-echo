@@ -59,4 +59,5 @@ func RoutesInit(e *echo.Echo) {
 	// Permission Feature
 	permissionController := controllers.PermissionController{PermissionService: PermissionService}
 	PermissionRoute(RouteGroup{V1: v1}, permissionController)
+
 }

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"go-echo/database"
 	"go-echo/helpers"
 	"go-echo/models"
 	"go-echo/queries"
@@ -13,25 +14,25 @@ type UserService struct {
 	DB *gorm.DB
 }
 
-func (us *UserService) syncRoleUser(roleIds []uint, userId uint) ([]models.RoleUserResponse, error) {
+func syncRoleUser(tx *gorm.DB, roleIds []uint, userId uint) ([]models.RoleUserResponse, error) {
 	roleUserResponse := []models.RoleUserResponse{}
 
 	// Check if user didn't include payload
 	if len(roleIds) == 0 {
-		if query := us.DB.Where("user_id = ?", userId).Delete(&models.RoleUserResponse{}); query.Error != nil {
-			return roleUserResponse, query.Error
+		if err := tx.Where("user_id = ?", userId).Delete(&models.RoleUserResponse{}).Error; err != nil {
+			return roleUserResponse, err
 		}
 	}
 
 	// Check if user already have role before
 	// If user didn't sent the previous role, remove, but assign that new one
-	if query := us.DB.Where("user_id = ?", userId).Where("role_id NOT IN ?", roleIds).Delete(&models.RoleUserResponse{}); query.Error != nil {
+	if query := tx.Where("user_id = ?", userId).Where("role_id NOT IN ?", roleIds).Delete(&models.RoleUserResponse{}); query.Error != nil {
 		return roleUserResponse, query.Error
 	}
 
 	// Check if user have existing role
 	var existedUserRoles []models.RoleUser
-	if query := us.DB.Where(models.RoleUser{UserID: userId}).Where("role_id IN ?", roleIds).Find(&existedUserRoles); query.Error != nil {
+	if query := tx.Where(models.RoleUser{UserID: userId}).Where("role_id IN ?", roleIds).Find(&existedUserRoles); query.Error != nil {
 		return roleUserResponse, query.Error
 	}
 
@@ -61,7 +62,7 @@ func (us *UserService) syncRoleUser(roleIds []uint, userId uint) ([]models.RoleU
 	if len(assignedRoleIds) > 0 {
 		for _, roleId := range assignedRoleIds {
 			// Check if role exists
-			if query := us.DB.First(&models.Role{}, roleId); query.Error != nil {
+			if query := tx.First(&models.Role{}, roleId); query.Error != nil {
 				return roleUserResponse, query.Error
 			}
 
@@ -70,14 +71,14 @@ func (us *UserService) syncRoleUser(roleIds []uint, userId uint) ([]models.RoleU
 				UserID: userId,
 			}
 
-			if query := us.DB.Create(newUserRole); query.Error != nil {
+			if query := tx.Create(newUserRole); query.Error != nil {
 				return roleUserResponse, query.Error
 			}
 		}
 	}
 
 	// Look up new assigned role through database
-	if query := us.DB.Select("role_users.*, roles.name, roles.id").Where("user_id = ?", userId).Joins("left join roles ON roles.id = role_users.role_id").Order("created_at desc").Find(&roleUserResponse); query.Error != nil {
+	if query := tx.Select("role_users.*, roles.name, roles.id").Where("user_id = ?", userId).Joins("left join roles ON roles.id = role_users.role_id").Order("created_at desc").Find(&roleUserResponse); query.Error != nil {
 		return roleUserResponse, query.Error
 	}
 
@@ -93,21 +94,24 @@ func (us *UserService) Index(pagination helpers.Pagination) (*helpers.Pagination
 	return &pagination, query.Error
 }
 
-func (us *UserService) StoreOrUpdate(payload structs.UserCreateEditForm) (models.UserWithRoleResponse, error) {
-	var user models.UserWithRoleResponse
-	var assignedUserRoles []models.RoleUserResponse
+func (us *UserService) StoreOrUpdate(payload structs.UserCreateEditForm) (*models.UserWithRoleResponse, error) {
+	user := &models.UserWithRoleResponse{}
+	tx, err := database.BeginTransaction(us.DB)
+	if err != nil {
+		return nil, err
+	}
 
 	// Make default has password for the first time creating an user
 	hashedPassword, err := helpers.PasswordHash("password")
 	if err != nil {
-		return models.UserWithRoleResponse{}, err
+		return nil, err
 	}
 
 	// Assign value
 	if payload.ID != nil {
-		query := us.DB.Find(&user, payload.ID)
+		query := tx.Find(&user, payload.ID)
 		if query.Error != nil {
-			return user, query.Error
+			return nil, query.Error
 		}
 	}
 	user.Name = payload.Name
@@ -117,28 +121,34 @@ func (us *UserService) StoreOrUpdate(payload structs.UserCreateEditForm) (models
 	}
 
 	// Create / Update new user
-	if err := us.DB.Save(&user); err.Error != nil {
-		return user, err.Error
+	if err := tx.Save(&user); err.Error != nil {
+		return nil, err.Error
 	}
 
 	// Assign payload.ID to user.id
 	payload.ID = &user.ID
 
 	// Create or Update user role
-	userRoles, err := us.syncRoleUser(payload.Roles, *payload.ID)
+	userRoles, err := syncRoleUser(tx, payload.Roles, *payload.ID)
 	if err != nil {
 		return user, err
 	}
-	assignedUserRoles = userRoles
 
-	return models.UserWithRoleResponse{
+	// Commit Transaction
+	if err := tx.Commit().Error; err != nil {
+		return nil, err
+	}
+
+	user = &models.UserWithRoleResponse{
 		ID:        user.ID,
 		Name:      user.Name,
 		Email:     user.Email,
-		Roles:     assignedUserRoles,
+		Roles:     userRoles,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
-	}, nil
+	}
+
+	return user, nil
 }
 
 func (us *UserService) Show(payload structs.UserAttrsFind) (models.UserWithRoleResponse, int, error) {
