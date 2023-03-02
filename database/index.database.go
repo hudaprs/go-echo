@@ -72,16 +72,23 @@ func Connect() *gorm.DB {
 	return db
 }
 
-func BeginTransaction(db *gorm.DB) (*gorm.DB, error) {
+func BeginTransaction(db *gorm.DB, callback func(tx *gorm.DB) error) error {
 	tx := db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-	if err := tx.Error; err != nil {
-		return nil, err
+	if tx.Error != nil {
+		return tx.Error
 	}
 
-	return tx, nil
+	callbackErr := callback(tx)
+	if callbackErr != nil {
+		if err := tx.Rollback().Error; err != nil {
+			return err
+		}
+		return callbackErr
+	}
+
+	if callbackErr = tx.Commit().Error; callbackErr != nil {
+		return callbackErr
+	}
+
+	return nil
 }

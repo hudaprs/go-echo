@@ -88,52 +88,47 @@ func (rs *RoleService) AssignRoles(userId uint, payload structs.RoleAssignUsersF
 func (rs *RoleService) ActivateRole(roleId uint, userId uint) (*models.RoleResponse, int, error) {
 	var roleMappingDetail *models.RoleUser
 	var roleDetail models.RoleResponse
-	tx, err := database.BeginTransaction(rs.DB)
-	if err != nil {
-		return nil, 500, err
-	}
-
-	// Find role inside mapping table
-	// Find role by specific role id and user id
-	if err := rs.DB.Where(&models.RoleUser{RoleID: roleId, UserID: userId}).First(&roleMappingDetail).Error; err != nil {
-		statusCode, err := helpers.ErrorDatabaseNotFound(err)
-		return nil, statusCode, err
-	}
-
-	// Check if user have specific role
-	if roleMappingDetail != nil {
-		// Update the selected role to be active
-		roleMappingDetail.IsActive = true
-		if err := tx.Save(&roleMappingDetail).Error; err != nil {
-			return nil, 500, err
+	err := database.BeginTransaction(rs.DB, func(tx *gorm.DB) error {
+		// Find role inside mapping table
+		// Find role by specific role id and user id
+		if err := rs.DB.Where(&models.RoleUser{RoleID: roleId, UserID: userId}).First(&roleMappingDetail).Error; err != nil {
+			return err
 		}
 
-		// Assign role detail to be selected role by the user
-		if err := rs.DB.First(&roleDetail, roleMappingDetail.RoleID).Error; err != nil {
-			statusCode, err := helpers.ErrorDatabaseNotFound(err)
-			return nil, statusCode, err
-		}
+		// Check if user have specific role
+		if roleMappingDetail != nil {
+			// Update the selected role to be active
+			roleMappingDetail.IsActive = true
+			if err := tx.Save(&roleMappingDetail).Error; err != nil {
+				return err
+			}
 
-		// Find roles by specific user
-		// Find roles that user have, but not the selected (the user selected role to be activated)
-		var roleUserListExceptTheSelected []models.RoleUser
-		if err := rs.DB.Where(&models.RoleUser{UserID: userId}).Not(models.RoleUser{RoleID: roleId}).Find(&roleUserListExceptTheSelected).Error; err != nil {
-			return nil, 500, err
-		}
+			// Assign role detail to be selected role by the user
+			if err := rs.DB.First(&roleDetail, roleMappingDetail.RoleID).Error; err != nil {
+				return err
+			}
 
-		// If user have any roles, make other role status inactive
-		if len(roleUserListExceptTheSelected) > 0 {
-			for _, roleUser := range roleUserListExceptTheSelected {
-				roleUser.IsActive = false
-				if err := tx.Save(&roleUser).Error; err != nil {
-					return nil, 500, err
+			// Find roles by specific user
+			// Find roles that user have, but not the selected (the user selected role to be activated)
+			var roleUserListExceptTheSelected []models.RoleUser
+			if err := rs.DB.Where(&models.RoleUser{UserID: userId}).Not(models.RoleUser{RoleID: roleId}).Find(&roleUserListExceptTheSelected).Error; err != nil {
+				return err
+			}
+
+			// If user have any roles, make other role status inactive
+			if len(roleUserListExceptTheSelected) > 0 {
+				for _, roleUser := range roleUserListExceptTheSelected {
+					roleUser.IsActive = false
+					if err := tx.Save(&roleUser).Error; err != nil {
+						return err
+					}
 				}
 			}
 		}
-	}
 
-	// Commit the transaction
-	if err := tx.Commit().Error; err != nil {
+		return nil
+	})
+	if err != nil {
 		return nil, 500, err
 	}
 
