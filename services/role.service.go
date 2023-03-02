@@ -3,6 +3,7 @@ package services
 import (
 	"go-echo/database"
 	"go-echo/helpers"
+	"go-echo/locales"
 	"go-echo/models"
 	"go-echo/queries"
 	"go-echo/structs"
@@ -37,8 +38,9 @@ func (rs *RoleService) Show(id uint) (models.RoleWithPermissionResponse, int, er
 	var role models.RoleWithPermissionResponse
 
 	query := rs.DB.Scopes(queries.RolePermissionPreload("Permissions")).First(&role, id)
-
-	statusCode, err := helpers.ErrorDatabaseNotFound(query.Error)
+	statusCode, err := helpers.ErrorDatabaseDynamic(query.Error, helpers.DatabaseDynamicMessage{
+		NotFound: locales.LocalesGet("role.validation.notFound"),
+	})
 
 	return role, statusCode, err
 }
@@ -54,7 +56,9 @@ func (rs *RoleService) Delete(id uint) (models.RoleResponse, int, error) {
 
 	query := rs.DB.First(&role, id).Delete(role)
 
-	statusCode, err := helpers.ErrorDatabaseNotFound(query.Error)
+	statusCode, err := helpers.ErrorDatabaseDynamic(query.Error, helpers.DatabaseDynamicMessage{
+		NotFound: locales.LocalesGet("role.validation.notFound"),
+	})
 
 	return role, statusCode, err
 }
@@ -92,7 +96,10 @@ func (rs *RoleService) ActivateRole(roleId uint, userId uint) (*models.RoleRespo
 		// Find role inside mapping table
 		// Find role by specific role id and user id
 		if err := rs.DB.Where(&models.RoleUser{RoleID: roleId, UserID: userId}).First(&roleMappingDetail).Error; err != nil {
-			return err
+			_, _err := helpers.ErrorDatabaseDynamic(err, helpers.DatabaseDynamicMessage{
+				NotFound: locales.LocalesGet("roleUser.validation.notFound"),
+			})
+			return _err
 		}
 
 		// Check if user have specific role
@@ -105,7 +112,10 @@ func (rs *RoleService) ActivateRole(roleId uint, userId uint) (*models.RoleRespo
 
 			// Assign role detail to be selected role by the user
 			if err := rs.DB.First(&roleDetail, roleMappingDetail.RoleID).Error; err != nil {
-				return err
+				_, _err := helpers.ErrorDatabaseDynamic(err, helpers.DatabaseDynamicMessage{
+					NotFound: locales.LocalesGet("role.validation.notFound"),
+				})
+				return _err
 			}
 
 			// Find roles by specific user

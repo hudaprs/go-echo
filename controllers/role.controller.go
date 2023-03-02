@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"go-echo/helpers"
+	"go-echo/locales"
 	"go-echo/services"
 	"go-echo/structs"
 	"net/http"
@@ -25,7 +26,7 @@ func (rc RoleController) Index(c echo.Context) error {
 		return helpers.ErrorServer(err.Error())
 	}
 
-	return helpers.Ok(http.StatusOK, "Get role success", roleList)
+	return helpers.Ok(http.StatusOK, locales.LocalesGet("role.rest.index"), roleList)
 }
 
 // @description Store data
@@ -49,7 +50,7 @@ func (rc RoleController) Store(c echo.Context) error {
 		return helpers.ErrorServer(err.Error())
 	}
 
-	return helpers.Ok(http.StatusCreated, "Role created successfully", newRole)
+	return helpers.Ok(http.StatusCreated, locales.LocalesGet("role.rest.store"), newRole)
 }
 
 // @description Get single data
@@ -63,7 +64,7 @@ func (rc RoleController) Show(c echo.Context) error {
 		return helpers.ErrorDynamic(statusCode, err.Error())
 	}
 
-	return helpers.Ok(http.StatusOK, "Get role detail success", roleDetail)
+	return helpers.Ok(http.StatusOK, locales.LocalesGet("role.rest.show"), roleDetail)
 }
 
 // @description Update data
@@ -92,7 +93,7 @@ func (rc RoleController) Update(c echo.Context) error {
 		return helpers.ErrorServer(err.Error())
 	}
 
-	return helpers.Ok(http.StatusOK, "Update role success", updatedRole)
+	return helpers.Ok(http.StatusOK, locales.LocalesGet("role.rest.update"), updatedRole)
 }
 
 // @description Delete data
@@ -105,5 +106,5 @@ func (rc RoleController) Delete(c echo.Context) error {
 		return helpers.ErrorDynamic(statusCode, err.Error())
 	}
 
-	return helpers.Ok(http.StatusOK, "Role deleted successfully", deletedRole)
+	return helpers.Ok(http.StatusOK, locales.LocalesGet("role.rest.destroy"), deletedRole)
 }

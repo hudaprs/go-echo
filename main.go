@@ -4,6 +4,7 @@ import (
 	"go-echo/database"
 	"go-echo/environment"
 	"go-echo/helpers"
+	"go-echo/locales"
 	"go-echo/migrations"
 	"go-echo/routes"
 	"os"
@@ -25,6 +26,10 @@ func main() {
 		AllowOrigins: []string{"*"},
 		AllowHeaders: []string{"*"},
 	}))
+
+	// Init Localization
+	locales.LocalesGenerate()
+	e.Use(locales.LocalesSet())
 
 	// Init Environment
 	environment.EnvironmentInit()

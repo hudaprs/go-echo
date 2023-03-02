@@ -2,6 +2,7 @@ package services
 
 import (
 	"go-echo/helpers"
+	"go-echo/locales"
 	"go-echo/models"
 	"go-echo/queries"
 	"go-echo/structs"
@@ -17,7 +18,9 @@ func (as *AuthService) Show(id uint) (models.UserRoleWithPermission, int, error)
 	var user models.UserRoleWithPermission
 	query := as.DB.Scopes(queries.RoleUserWithPermissionPreload()).First(&user, id)
 
-	statusCode, err := helpers.ErrorDatabaseNotFound(query.Error)
+	statusCode, err := helpers.ErrorDatabaseDynamic(query.Error, helpers.DatabaseDynamicMessage{
+		NotFound: locales.LocalesGet("user.validation.notFound"),
+	})
 
 	return user, statusCode, err
 }

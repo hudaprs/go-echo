@@ -1,0 +1,67 @@
+{
+	"hello": "Hello!",
+	"auth": {
+		"login": {
+			"success": "You have successfully login"
+		},
+		"register": {
+			"success": "You has been registered successfully"
+		},
+		"refreshToken": {
+			"success": "You has been successfully refresh token"
+		},
+		"logout": {
+			"success": "You have successfully logout"
+		},
+		"activateRole": {
+			"success": "role has been successfully activated"
+		}
+	},
+	"user": {
+		"rest": {
+			"index": "Get user list success",
+			"store": "User created successfully",
+			"show": "Get user detail success",
+			"update": "User updated successfully",
+			"destroy": "User deleted successfully"
+		},
+		"validation": {
+			"notFound": "User not found"
+		}
+	},
+	"role": {
+		"rest": {
+			"index": "Get role list success",
+			"store": "Role created successfully",
+			"show": "Get role detail success",
+			"update": "Role updated successfully",
+			"destroy": "Role deleted successfully"
+		},
+		"validation": {
+			"notFound": "Role not found"
+		}
+	},
+	"roleUser": {
+		"validation": {
+			"notFound": "Role User not found"
+		}
+	},
+	"permission": {
+		"rest": {
+			"index": "Get permission list success",
+			"assignPermission": "Permission assigned successfully"
+		},
+		"validation": {
+			"notFound": "Permission not found"
+		}
+	},
+	"rolePermission": {
+		"validation": {
+			"notFound": "Role Permission not found"
+		}
+	},
+	"validation": {
+		"emailAlreadyUsed": "Email already used",
+		"invalidCredentials": "Invalid credentials"
+	}
+}

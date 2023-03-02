@@ -33,7 +33,7 @@ func (rts *RefreshTokenService) Show(userId uint) (models.RefreshTokenResponse, 
 
 	query := db.Where(&models.RefreshTokenResponse{UserID: userId}).First(&refreshTokenDetail)
 
-	statusCode, err := helpers.ErrorDatabaseNotFound(query.Error)
+	statusCode, err := helpers.ErrorDatabaseDynamic(query.Error)
 
 	return refreshTokenDetail, statusCode, err
 }
@@ -44,7 +44,7 @@ func (rts *RefreshTokenService) ShowByRefreshToken(refreshToken string) (models.
 	var refreshTokenDetail models.RefreshTokenResponse
 	query := db.Where(&models.RefreshTokenResponse{RefreshToken: refreshToken}).First(&refreshTokenDetail)
 
-	statusCode, err := helpers.ErrorDatabaseNotFound(query.Error)
+	statusCode, err := helpers.ErrorDatabaseDynamic(query.Error)
 
 	return refreshTokenDetail, statusCode, err
 }

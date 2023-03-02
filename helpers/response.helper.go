@@ -19,6 +19,10 @@ type ValidationResponse struct {
 	Message string `json:"message"`
 }
 
+type DatabaseDynamicMessage struct {
+	NotFound string
+}
+
 func ErrorBadRequest(message string) error {
 	return echo.NewHTTPError(http.StatusBadRequest, Response{
 		Message: message,
@@ -70,13 +74,16 @@ func Ok(code int, message string, data interface{}) error {
 	})
 }
 
-func ErrorDatabaseNotFound(queryError error) (int, error) {
+func ErrorDatabaseDynamic(queryError error, message DatabaseDynamicMessage) (int, error) {
 	isNotFound := errors.Is(queryError, gorm.ErrRecordNotFound)
 
 	var statusCode int
 
 	if isNotFound {
 		statusCode = http.StatusNotFound
+		if message.NotFound != "" {
+			queryError = errors.New(message.NotFound)
+		}
 	} else if queryError != nil {
 		statusCode = http.StatusInternalServerError
 	} else {

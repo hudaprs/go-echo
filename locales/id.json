@@ -1,0 +1,9 @@
+{
+	"hello": "Halo!",
+	"welcome": "Welcome",
+	"auth": {
+		"login": {
+			"success": "You have successfully login"
+		}
+	}
+}

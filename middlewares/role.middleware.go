@@ -3,6 +3,7 @@ package middlewares
 import (
 	"go-echo/database"
 	"go-echo/helpers"
+	"go-echo/locales"
 	"go-echo/models"
 
 	"github.com/labstack/echo/v4"
@@ -29,20 +30,26 @@ func RoleCheck(permissionCode string, permissionAction PermissionAction) echo.Mi
 
 			// Find permission
 			if query := conn.Where(&models.Permission{Code: permissionCode}).First(&permissionDetail); query.Error != nil {
-				statusCode, err := helpers.ErrorDatabaseNotFound(query.Error)
+				statusCode, err := helpers.ErrorDatabaseDynamic(query.Error, helpers.DatabaseDynamicMessage{
+					NotFound: locales.LocalesGet("permission.validation.notFound"),
+				})
 				return helpers.ErrorDynamic(statusCode, err.Error())
 			}
 
 			// Find active role
 			if query := conn.Where(&models.RoleUser{UserID: authenticatedUser.ID, IsActive: true}).First(&userActiveRole); query.Error != nil {
-				statusCode, err := helpers.ErrorDatabaseNotFound(query.Error)
+				statusCode, err := helpers.ErrorDatabaseDynamic(query.Error, helpers.DatabaseDynamicMessage{
+					NotFound: locales.LocalesGet("roleUser.validation.notFound"),
+				})
 				return helpers.ErrorDynamic(statusCode, err.Error())
 			}
 
 			// Find permission of role
 			if userActiveRole != nil && permissionDetail != nil {
 				if query := conn.Where(&models.RolePermission{RoleID: userActiveRole.RoleID, PermissionID: permissionDetail.ID}).First(&rolePermission); query.Error != nil {
-					statusCode, err := helpers.ErrorDatabaseNotFound(query.Error)
+					statusCode, err := helpers.ErrorDatabaseDynamic(query.Error, helpers.DatabaseDynamicMessage{
+						NotFound: locales.LocalesGet("rolePermission.validation.notFound"),
+					})
 					return helpers.ErrorDynamic(statusCode, err.Error())
 				}
 			}

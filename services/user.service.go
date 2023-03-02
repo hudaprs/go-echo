@@ -3,6 +3,7 @@ package services
 import (
 	"go-echo/database"
 	"go-echo/helpers"
+	"go-echo/locales"
 	"go-echo/models"
 	"go-echo/queries"
 	"go-echo/structs"
@@ -63,7 +64,10 @@ func syncRoleUser(tx *gorm.DB, roleIds []uint, userId uint) ([]models.RoleUserRe
 		for _, roleId := range assignedRoleIds {
 			// Check if role exists
 			if err := tx.First(&models.Role{}, roleId).Error; err != nil {
-				return roleUserResponse, err
+				_, _err := helpers.ErrorDatabaseDynamic(err, helpers.DatabaseDynamicMessage{
+					NotFound: locales.LocalesGet("role.validation.notFound"),
+				})
+				return roleUserResponse, _err
 			}
 
 			newUserRole := &models.RoleUserResponse{
@@ -108,7 +112,10 @@ func (us *UserService) StoreOrUpdate(payload structs.UserCreateEditForm) (*model
 		// Assign value
 		if payload.ID != nil {
 			if err := tx.Find(&user, payload.ID).Error; err != nil {
-				return err
+				_, _err := helpers.ErrorDatabaseDynamic(err, helpers.DatabaseDynamicMessage{
+					NotFound: locales.LocalesGet("user.validation.notFound"),
+				})
+				return _err
 			}
 		}
 
@@ -156,25 +163,31 @@ func (us *UserService) Show(payload structs.UserAttrsFind) (models.UserWithRoleR
 	var user models.UserWithRoleResponse
 
 	query := us.DB.Scopes(queries.RoleUserPreload()).Where("id = ?", payload.ID).Or("name = ?", payload.Name).Or("email = ?", payload.Email).First(&user)
-	queryStatusCode := helpers.ValidateNotFoundData(query.Error)
+	statusCode, err := helpers.ErrorDatabaseDynamic(query.Error, helpers.DatabaseDynamicMessage{
+		NotFound: locales.LocalesGet("user.validation.notFound"),
+	})
 
-	return user, queryStatusCode, query.Error
+	return user, statusCode, err
 }
 
 func (us *UserService) Delete(payload structs.UserAttrsFind) (models.UserWithRoleResponse, int, error) {
 	var user models.UserWithRoleResponse
 
 	query := us.DB.Scopes(queries.RoleUserPreload()).Where("id = ?", payload.ID).Or("name = ?", payload.Name).Or("email = ?", payload.Email).First(&user).Delete(user)
-	queryStatusCode := helpers.ValidateNotFoundData(query.Error)
+	statusCode, err := helpers.ErrorDatabaseDynamic(query.Error, helpers.DatabaseDynamicMessage{
+		NotFound: locales.LocalesGet("user.validation.notFound"),
+	})
 
-	return user, queryStatusCode, query.Error
+	return user, statusCode, err
 }
 
 func (us *UserService) CheckEmail(email string) (bool, int, models.UserResponse, error) {
 	var user models.UserResponse
 	query := us.DB.Where("email = ?", email).First(&user)
 
-	findUserStatusCode := helpers.ValidateNotFoundData(query.Error)
+	statusCode, err := helpers.ErrorDatabaseDynamic(query.Error, helpers.DatabaseDynamicMessage{
+		NotFound: locales.LocalesGet("user.validation.notFound"),
+	})
 
-	return findUserStatusCode == 200, findUserStatusCode, user, query.Error
+	return statusCode == 200, statusCode, user, err
 }
