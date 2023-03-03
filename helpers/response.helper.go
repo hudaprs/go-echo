@@ -9,7 +9,7 @@ import (
 )
 
 type Response struct {
-	Status  int         `json:"status"`
+	Status  int         `json:"-"`
 	Message string      `json:"message"`
 	Result  interface{} `json:"result"`
 }
@@ -20,7 +20,8 @@ type ValidationResponse struct {
 }
 
 type DatabaseDynamicMessage struct {
-	NotFound string
+	NotFound           string
+	NeedAuthentication bool
 }
 
 func ErrorBadRequest(message string) error {
@@ -88,6 +89,11 @@ func ErrorDatabaseDynamic(queryError error, message DatabaseDynamicMessage) (int
 		statusCode = http.StatusInternalServerError
 	} else {
 		statusCode = http.StatusOK
+	}
+
+	// Check if user activating the authentication identifier
+	if message.NeedAuthentication {
+		statusCode = http.StatusUnauthorized
 	}
 
 	return statusCode, queryError

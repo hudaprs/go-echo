@@ -1,9 +1,99 @@
 {
-	"hello": "Halo!",
-	"welcome": "Welcome",
+	"general": {
+		"shouldBe": "seharusnya"
+	},
 	"auth": {
 		"login": {
-			"success": "You have successfully login"
+			"success": "Login berhasil"
+		},
+		"register": {
+			"success": "Daftar berhasil"
+		},
+		"refreshToken": {
+			"success": "Token berhasil disegarkan"
+		},
+		"logout": {
+			"success": "Anda berhasil logout"
+		},
+		"activateRole": {
+			"success": "role berhasil diaktifkan"
+		}
+	},
+	"user": {
+		"rest": {
+			"index": "Daftar user berhasil didapatkan",
+			"store": "User berhasil terbuat",
+			"show": "Detail user berhasil didapatkan",
+			"update": "User berhasil diubah",
+			"destroy": "User berhasil dihapus"
+		},
+		"validation": {
+			"notFound": "User tidak ditemukan"
+		}
+	},
+	"role": {
+		"rest": {
+			"index": "Daftar role berhasil didapatkan",
+			"store": "Role berhasil terbuat",
+			"show": "Detail role berhasil didapatkan",
+			"update": "Role berhasil diubah",
+			"destroy": "Role berhasil dihapus"
+		},
+		"validation": {
+			"notFound": "Role tidak ditemukan"
+		}
+	},
+	"roleUser": {
+		"validation": {
+			"notFound": "Role User tidak ditemukan"
+		}
+	},
+	"permission": {
+		"rest": {
+			"index": "Daftar permission berhasil didapatkan",
+			"assignPermission": "Permission berhasil didaftarkan"
+		},
+		"validation": {
+			"notFound": "Permission tidak ditemukan"
+		}
+	},
+	"rolePermission": {
+		"validation": {
+			"notFound": "Role Permission tidak ditemukan"
+		}
+	},
+	"todo": {
+		"rest": {
+			"index": "Daftar todo berhasil didapatkan",
+			"store": "Todo berhasil terbuat",
+			"show": "Detail todo berhasil didapatkan",
+			"update": "Todo berhasil diubah",
+			"destroy": "Todo berhasil dihapus"
+		},
+		"validation": {
+			"notFound": "Todo tidak ditemukan"
+		}
+	},
+	"refreshToken": {
+		"rest": {
+			"show": "Refresh Token berhasil didapatkan",
+			"destroy": "Refresh Token berhasil dihapus"
+		},
+		"validation": {
+			"notFound": "Refresh Token tidak ditemukan"
+		}
+	},
+	"validation": {
+		"permissionAccess": "Permission Akses",
+		"emailAlreadyUsed": "Email telah terpakai",
+		"invalidCredentials": "Kredensial tidak sesuai",
+		"unauthorized": "Tidak terautentikasi",
+		"forbidden": "Tidak mempunyai hak",
+		"validation": "Error validasi",
+		"authorizationHeader": "Authorization header diperlukan",
+		"form": {
+			"emailValid": "harus valid",
+			"gte": "lebih dari atau sama dengan"
 		}
 	}
 }

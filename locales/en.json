@@ -1,5 +1,7 @@
 {
-	"hello": "Hello!",
+	"general": {
+		"shouldBe": "should be"
+	},
 	"auth": {
 		"login": {
 			"success": "You have successfully login"
@@ -60,8 +62,38 @@
 			"notFound": "Role Permission not found"
 		}
 	},
+	"todo": {
+		"rest": {
+			"index": "Get todo list success",
+			"store": "Todo created successfully",
+			"show": "Get todo detail success",
+			"update": "Todo updated successfully",
+			"destroy": "Todo deleted successfully"
+		},
+		"validation": {
+			"notFound": "Todo not found"
+		}
+	},
+	"refreshToken": {
+		"rest": {
+			"show": "Get refresh token success",
+			"destroy": "Refresh Token deleted successfully"
+		},
+		"validation": {
+			"notFound": "Refresh Token not found"
+		}
+	},
 	"validation": {
+		"permissionAccess": "Permission Access",
 		"emailAlreadyUsed": "Email already used",
-		"invalidCredentials": "Invalid credentials"
+		"invalidCredentials": "Invalid credentials",
+		"unauthorized": "Unauthorized",
+		"forbidden": "Forbidden",
+		"validation": "Validation Error",
+		"authorizationHeader": "Authorization header is required",
+		"form": {
+			"emailValid": "valid email",
+			"gte": "greater or equal than"
+		}
 	}
 }

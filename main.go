@@ -18,9 +18,6 @@ func main() {
 	// Instance of echo
 	e := echo.New()
 
-	// Validator Instance
-	e.Validator = &helpers.CustomValidator{Validator: validator.New()}
-
 	// CORS
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
@@ -30,6 +27,12 @@ func main() {
 	// Init Localization
 	locales.LocalesGenerate()
 	e.Use(locales.LocalesSet())
+
+	// Validator Instance
+	e.Validator = &helpers.CustomValidator{
+		Validator: validator.New(),
+		Locale:    locales.LocalesGet,
+	}
 
 	// Init Environment
 	environment.EnvironmentInit()

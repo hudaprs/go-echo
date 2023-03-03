@@ -3,6 +3,7 @@ package services
 import (
 	"go-echo/database"
 	"go-echo/helpers"
+	"go-echo/locales"
 	"go-echo/models"
 	"go-echo/structs"
 	"net/http"
@@ -32,8 +33,9 @@ func (rts *RefreshTokenService) Show(userId uint) (models.RefreshTokenResponse, 
 	var refreshTokenDetail models.RefreshTokenResponse
 
 	query := db.Where(&models.RefreshTokenResponse{UserID: userId}).First(&refreshTokenDetail)
-
-	statusCode, err := helpers.ErrorDatabaseDynamic(query.Error)
+	statusCode, err := helpers.ErrorDatabaseDynamic(query.Error, helpers.DatabaseDynamicMessage{
+		NotFound: locales.LocalesGet("refreshToken.validation.notFound"),
+	})
 
 	return refreshTokenDetail, statusCode, err
 }
@@ -43,8 +45,9 @@ func (rts *RefreshTokenService) ShowByRefreshToken(refreshToken string) (models.
 
 	var refreshTokenDetail models.RefreshTokenResponse
 	query := db.Where(&models.RefreshTokenResponse{RefreshToken: refreshToken}).First(&refreshTokenDetail)
-
-	statusCode, err := helpers.ErrorDatabaseDynamic(query.Error)
+	statusCode, err := helpers.ErrorDatabaseDynamic(query.Error, helpers.DatabaseDynamicMessage{
+		NotFound: locales.LocalesGet("user.validation.notFound"),
+	})
 
 	return refreshTokenDetail, statusCode, err
 }

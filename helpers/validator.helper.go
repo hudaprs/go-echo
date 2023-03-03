@@ -1,46 +1,26 @@
 package helpers
 
 import (
-	"errors"
-	"net/http"
-
 	"github.com/go-playground/validator/v10"
-	"gorm.io/gorm"
 )
 
 type CustomValidator struct {
 	Validator *validator.Validate
+	Locale    func(key string) string
 }
 
-func renderCustomValidationMessage(actualMessage string, param string) string {
+func renderCustomValidationMessage(actualMessage string, param string, Locale func(key string) string) string {
 	switch actualMessage {
 	case "email":
-		return "valid email"
+		return Locale("validation.form.emailValid")
 	case "gte":
-		return "greater or equal than " + param
+		return Locale("validation.form.gte") + " " + param
 	default:
 		return actualMessage
 	}
 }
 
-func ValidateNotFoundData(err error) int {
-	isNotFound := errors.Is(err, gorm.ErrRecordNotFound)
-
-	var statusCode int
-
-	if isNotFound {
-		statusCode = http.StatusNotFound
-	} else if err != nil {
-		statusCode = http.StatusInternalServerError
-	} else {
-		statusCode = http.StatusOK
-	}
-
-	return statusCode
-}
-
 func (customValidator *CustomValidator) Validate(i interface{}) error {
-
 	if err := customValidator.Validator.Struct(i); err != nil {
 		var validations []ValidationResponse
 
@@ -48,7 +28,7 @@ func (customValidator *CustomValidator) Validate(i interface{}) error {
 
 			validations = append(validations, ValidationResponse{
 				Field:   err.Field(),
-				Message: err.Field() + " should be " + renderCustomValidationMessage(err.ActualTag(), err.Param()),
+				Message: err.Field() + " " + customValidator.Locale("general.shouldBe") + " " + renderCustomValidationMessage(err.ActualTag(), err.Param(), customValidator.Locale),
 			})
 
 			// fmt.Println(err.Namespace()) // can differ when a custom TagNameFunc is registered or

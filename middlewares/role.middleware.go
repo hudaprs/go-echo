@@ -31,7 +31,8 @@ func RoleCheck(permissionCode string, permissionAction PermissionAction) echo.Mi
 			// Find permission
 			if query := conn.Where(&models.Permission{Code: permissionCode}).First(&permissionDetail); query.Error != nil {
 				statusCode, err := helpers.ErrorDatabaseDynamic(query.Error, helpers.DatabaseDynamicMessage{
-					NotFound: locales.LocalesGet("permission.validation.notFound"),
+					NotFound:           locales.LocalesGet("validation.permissionAccess") + ": " + locales.LocalesGet("validation.notFound"),
+					NeedAuthentication: true,
 				})
 				return helpers.ErrorDynamic(statusCode, err.Error())
 			}
@@ -39,7 +40,8 @@ func RoleCheck(permissionCode string, permissionAction PermissionAction) echo.Mi
 			// Find active role
 			if query := conn.Where(&models.RoleUser{UserID: authenticatedUser.ID, IsActive: true}).First(&userActiveRole); query.Error != nil {
 				statusCode, err := helpers.ErrorDatabaseDynamic(query.Error, helpers.DatabaseDynamicMessage{
-					NotFound: locales.LocalesGet("roleUser.validation.notFound"),
+					NotFound:           locales.LocalesGet("validation.permissionAccess") + ": " + locales.LocalesGet("roleUser.validation.notFound"),
+					NeedAuthentication: true,
 				})
 				return helpers.ErrorDynamic(statusCode, err.Error())
 			}
@@ -48,7 +50,8 @@ func RoleCheck(permissionCode string, permissionAction PermissionAction) echo.Mi
 			if userActiveRole != nil && permissionDetail != nil {
 				if query := conn.Where(&models.RolePermission{RoleID: userActiveRole.RoleID, PermissionID: permissionDetail.ID}).First(&rolePermission); query.Error != nil {
 					statusCode, err := helpers.ErrorDatabaseDynamic(query.Error, helpers.DatabaseDynamicMessage{
-						NotFound: locales.LocalesGet("rolePermission.validation.notFound"),
+						NotFound:           locales.LocalesGet("validation.permissionAccess") + ": " + locales.LocalesGet("rolePermission.validation.notFound"),
+						NeedAuthentication: true,
 					})
 					return helpers.ErrorDynamic(statusCode, err.Error())
 				}
