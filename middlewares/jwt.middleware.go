@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"go-echo/helpers"
+	"go-echo/locales"
 	"net/http"
 	"os"
 
@@ -13,7 +14,7 @@ import (
 func handleErrorMessage(err string) string {
 	switch err {
 	case "missing value in request header":
-		return "Authorization header is required"
+		return locales.LocalesGet("validation.authorizationHeader")
 	default:
 		return err
 	}

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"go-echo/helpers"
+	"go-echo/locales"
 	"go-echo/services"
 	"go-echo/structs"
 	"net/http"
@@ -26,7 +27,7 @@ func (uc UserController) Index(c echo.Context) error {
 		return helpers.ErrorServer(err.Error())
 	}
 
-	return helpers.Ok(http.StatusOK, "Get user list success", users)
+	return helpers.Ok(http.StatusOK, locales.LocalesGet("user.rest.index"), users)
 }
 
 // @description Store data
@@ -44,7 +45,7 @@ func (uc UserController) Store(c echo.Context) error {
 	// Check user email
 	_, userDetailStatusCode, _ := uc.UserService.Show(structs.UserAttrsFind{Email: form.Email})
 	if userDetailStatusCode == 200 {
-		return helpers.ErrorBadRequest("Email already used")
+		return helpers.ErrorBadRequest(locales.LocalesGet("validation.emailAlreadyUsed"))
 	}
 
 	// Create new user
@@ -57,7 +58,7 @@ func (uc UserController) Store(c echo.Context) error {
 		return helpers.ErrorServer(err.Error())
 	}
 
-	return helpers.Ok(http.StatusCreated, "User created successfully", createdUser)
+	return helpers.Ok(http.StatusCreated, locales.LocalesGet("user.rest.store"), createdUser)
 }
 
 // @description Get single data
@@ -75,7 +76,7 @@ func (uc UserController) Show(c echo.Context) error {
 		return helpers.ErrorServer(err.Error())
 	}
 
-	return helpers.Ok(http.StatusOK, "Get user detail success", user)
+	return helpers.Ok(http.StatusOK, locales.LocalesGet("user.rest.show"), user)
 }
 
 // @description Update data
@@ -101,7 +102,7 @@ func (uc UserController) Update(c echo.Context) error {
 		// Check again if user update the email it-self
 		userDetailByEmail, _, _ := uc.UserService.Show(structs.UserAttrsFind{Email: form.Email})
 		if userDetailByEmail.Email == form.Email {
-			return helpers.ErrorBadRequest("Email already used")
+			return helpers.ErrorBadRequest(locales.LocalesGet("validation.emailAlreadyUsed"))
 
 		}
 	}
@@ -122,7 +123,7 @@ func (uc UserController) Update(c echo.Context) error {
 		return helpers.ErrorServer(err.Error())
 	}
 
-	return helpers.Ok(http.StatusCreated, "User updated successfully", updatedUser)
+	return helpers.Ok(http.StatusCreated, locales.LocalesGet("user.rest.update"), updatedUser)
 }
 
 // @description Delete data
@@ -140,7 +141,7 @@ func (uc UserController) Delete(c echo.Context) error {
 		return helpers.ErrorServer(err.Error())
 	}
 
-	return helpers.Ok(http.StatusOK, "User deleted successfully", user)
+	return helpers.Ok(http.StatusOK, locales.LocalesGet("user.rest.destroy"), user)
 }
 
 // @description Dropdown data
@@ -152,5 +153,5 @@ func (uc UserController) RoleDropdown(c echo.Context) error {
 		return helpers.ErrorServer(err.Error())
 	}
 
-	return helpers.Ok(http.StatusOK, "Get role list success", roleList)
+	return helpers.Ok(http.StatusOK, locales.LocalesGet("role.rest.index"), roleList)
 }

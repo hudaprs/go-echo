@@ -1,0 +1,99 @@
+{
+	"general": {
+		"shouldBe": "should be"
+	},
+	"auth": {
+		"login": {
+			"success": "You have successfully login"
+		},
+		"register": {
+			"success": "You has been registered successfully"
+		},
+		"refreshToken": {
+			"success": "You has been successfully refresh token"
+		},
+		"logout": {
+			"success": "You have successfully logout"
+		},
+		"activateRole": {
+			"success": "role has been successfully activated"
+		}
+	},
+	"user": {
+		"rest": {
+			"index": "Get user list success",
+			"store": "User created successfully",
+			"show": "Get user detail success",
+			"update": "User updated successfully",
+			"destroy": "User deleted successfully"
+		},
+		"validation": {
+			"notFound": "User not found"
+		}
+	},
+	"role": {
+		"rest": {
+			"index": "Get role list success",
+			"store": "Role created successfully",
+			"show": "Get role detail success",
+			"update": "Role updated successfully",
+			"destroy": "Role deleted successfully"
+		},
+		"validation": {
+			"notFound": "Role not found"
+		}
+	},
+	"roleUser": {
+		"validation": {
+			"notFound": "Role User not found"
+		}
+	},
+	"permission": {
+		"rest": {
+			"index": "Get permission list success",
+			"assignPermission": "Permission assigned successfully"
+		},
+		"validation": {
+			"notFound": "Permission not found"
+		}
+	},
+	"rolePermission": {
+		"validation": {
+			"notFound": "Role Permission not found"
+		}
+	},
+	"todo": {
+		"rest": {
+			"index": "Get todo list success",
+			"store": "Todo created successfully",
+			"show": "Get todo detail success",
+			"update": "Todo updated successfully",
+			"destroy": "Todo deleted successfully"
+		},
+		"validation": {
+			"notFound": "Todo not found"
+		}
+	},
+	"refreshToken": {
+		"rest": {
+			"show": "Get refresh token success",
+			"destroy": "Refresh Token deleted successfully"
+		},
+		"validation": {
+			"notFound": "Refresh Token not found"
+		}
+	},
+	"validation": {
+		"permissionAccess": "Permission Access",
+		"emailAlreadyUsed": "Email already used",
+		"invalidCredentials": "Invalid credentials",
+		"unauthorized": "Unauthorized",
+		"forbidden": "Forbidden",
+		"validation": "Validation Error",
+		"authorizationHeader": "Authorization header is required",
+		"form": {
+			"emailValid": "valid email",
+			"gte": "greater or equal than"
+		}
+	}
+}

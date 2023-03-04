@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"go-echo/helpers"
+	"go-echo/locales"
 	"go-echo/services"
 	"go-echo/structs"
 	"net/http"
@@ -24,7 +25,7 @@ func (rc PermissionController) Index(c echo.Context) error {
 		return helpers.ErrorServer(err.Error())
 	}
 
-	return helpers.Ok(http.StatusOK, "Get permission list success", permissionList)
+	return helpers.Ok(http.StatusOK, locales.LocalesGet("permission.rest.index"), permissionList)
 }
 
 // @description Assign permissions to role
@@ -46,5 +47,5 @@ func (rc PermissionController) AssignPermissions(c echo.Context) error {
 		return helpers.ErrorServer(err.Error())
 	}
 
-	return helpers.Ok(http.StatusOK, "Permission assigned successfully", rolePermissionList)
+	return helpers.Ok(http.StatusOK, locales.LocalesGet("permission.rest.assignPermission"), rolePermissionList)
 }

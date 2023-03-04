@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"go-echo/helpers"
+	"go-echo/locales"
 	"go-echo/services"
 	"go-echo/structs"
 	"net/http"
@@ -91,7 +92,7 @@ func (ac AuthController) Register(c echo.Context) error {
 	// Check for email
 	isEmailExists, _, _, _ := ac.UserService.CheckEmail(form.Email)
 	if isEmailExists {
-		return helpers.ErrorBadRequest("Email already used")
+		return helpers.ErrorBadRequest(locales.LocalesGet("validation.emailAlreadyUsed"))
 	}
 
 	createdUser, err := ac.AuthService.Store(*form)
@@ -100,7 +101,7 @@ func (ac AuthController) Register(c echo.Context) error {
 		return helpers.ErrorBadRequest(err.Error())
 	}
 
-	return helpers.Ok(http.StatusCreated, "You has been registered successfully", createdUser)
+	return helpers.Ok(http.StatusCreated, locales.LocalesGet("auth.register.success"), createdUser)
 }
 
 // @description Login
@@ -121,7 +122,7 @@ func (ac AuthController) Login(c echo.Context) error {
 		return helpers.ErrorDynamic(statusCode, err.Error())
 	}
 	if !isEmailExists {
-		return helpers.ErrorBadRequest("Invalid credentials")
+		return helpers.ErrorBadRequest(locales.LocalesGet("validation.invalidCredentials"))
 	}
 
 	// Check if user exists
@@ -131,7 +132,7 @@ func (ac AuthController) Login(c echo.Context) error {
 
 		// If password not correct, throw the error
 		if !isPasswordCorrect {
-			return helpers.ErrorBadRequest("Invalid credentials")
+			return helpers.ErrorBadRequest(locales.LocalesGet("validation.invalidCredentials"))
 		}
 	}
 
@@ -168,7 +169,7 @@ func (ac AuthController) Login(c echo.Context) error {
 		return helpers.ErrorServer(refreshTokenInsertErr.Error())
 	}
 
-	return helpers.Ok(http.StatusOK, "You have successfully login", structs.UserLoginResponse{
+	return helpers.Ok(http.StatusOK, locales.LocalesGet("auth.login.success"), structs.UserLoginResponse{
 		Token:        token,
 		RefreshToken: refreshToken,
 	})
@@ -218,7 +219,7 @@ func (ac AuthController) Refresh(c echo.Context) error {
 		return helpers.ErrorBadRequest(err.Error())
 	}
 
-	return helpers.Ok(http.StatusOK, "Token refreshed", structs.UserLoginResponse{
+	return helpers.Ok(http.StatusOK, locales.LocalesGet("auth.refreshToken.success"), structs.UserLoginResponse{
 		Token:        token,
 		RefreshToken: newRefreshToken,
 	})
@@ -237,7 +238,7 @@ func (ac AuthController) Logout(c echo.Context) error {
 	// Remove refresh token
 	ac.RefreshTokenService.DeleteByRefreshToken(refreshTokenHeaderString)
 
-	return helpers.Ok(http.StatusOK, "You have successfully logout", nil)
+	return helpers.Ok(http.StatusOK, locales.LocalesGet("auth.logout.success"), nil)
 }
 
 // @description Activate selected role
@@ -252,5 +253,5 @@ func (rc AuthController) ActivateRole(c echo.Context) error {
 		return helpers.ErrorDynamic(statusCode, err.Error())
 	}
 
-	return helpers.Ok(http.StatusOK, fmt.Sprintf("%s role has been successfully activated", roleDetail.Name), roleDetail)
+	return helpers.Ok(http.StatusOK, fmt.Sprintf("%s %s", roleDetail.Name, locales.LocalesGet("auth.activateRole.success")), roleDetail)
 }

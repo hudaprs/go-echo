@@ -2,6 +2,7 @@ package services
 
 import (
 	"go-echo/helpers"
+	"go-echo/locales"
 	"go-echo/models"
 	"go-echo/structs"
 
@@ -37,10 +38,11 @@ func (t *TodoService) Show(id int) (models.TodoUserResponse, int, error) {
 	var todo models.TodoUserResponse
 
 	query := t.DB.Preload("User").First(&todo, id)
+	statusCode, err := helpers.ErrorDatabaseDynamic(query.Error, helpers.DatabaseDynamicMessage{
+		NotFound: locales.LocalesGet("todo.validation.notFound"),
+	})
 
-	statusCode := helpers.ValidateNotFoundData(query.Error)
-
-	return todo, statusCode, query.Error
+	return todo, statusCode, err
 }
 
 func (t *TodoService) Update(todo models.TodoUserResponse) error {

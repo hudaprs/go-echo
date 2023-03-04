@@ -4,6 +4,7 @@ import (
 	"go-echo/database"
 	"go-echo/environment"
 	"go-echo/helpers"
+	"go-echo/locales"
 	"go-echo/migrations"
 	"go-echo/routes"
 	"os"
@@ -17,14 +18,21 @@ func main() {
 	// Instance of echo
 	e := echo.New()
 
-	// Validator Instance
-	e.Validator = &helpers.CustomValidator{Validator: validator.New()}
-
 	// CORS
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 		AllowHeaders: []string{"*"},
 	}))
+
+	// Init Localization
+	locales.LocalesGenerate()
+	e.Use(locales.LocalesSet())
+
+	// Validator Instance
+	e.Validator = &helpers.CustomValidator{
+		Validator: validator.New(),
+		Locale:    locales.LocalesGet,
+	}
 
 	// Init Environment
 	environment.EnvironmentInit()

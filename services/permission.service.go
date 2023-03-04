@@ -2,6 +2,8 @@ package services
 
 import (
 	"go-echo/database"
+	"go-echo/helpers"
+	"go-echo/locales"
 	"go-echo/models"
 	"go-echo/structs"
 
@@ -83,7 +85,10 @@ func (ps *PermissionService) AssignPermissions(roleId uint, payload structs.Role
 			for _, permission := range assignedPermissions {
 				// Check if permission exists
 				if err := tx.First(&models.Permission{}, permission.ID).Error; err != nil {
-					return err
+					_, _err := helpers.ErrorDatabaseDynamic(err, helpers.DatabaseDynamicMessage{
+						NotFound: locales.LocalesGet("permission.validation.notFound"),
+					})
+					return _err
 				}
 
 				newUserPermission := &models.RolePermissionResponse{

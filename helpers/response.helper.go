@@ -9,7 +9,7 @@ import (
 )
 
 type Response struct {
-	Status  int         `json:"status"`
+	Status  int         `json:"-"`
 	Message string      `json:"message"`
 	Result  interface{} `json:"result"`
 }
@@ -17,6 +17,11 @@ type Response struct {
 type ValidationResponse struct {
 	Field   string `json:"field"`
 	Message string `json:"message"`
+}
+
+type DatabaseDynamicMessage struct {
+	NotFound           string
+	NeedAuthentication bool
 }
 
 func ErrorBadRequest(message string) error {
@@ -70,17 +75,25 @@ func Ok(code int, message string, data interface{}) error {
 	})
 }
 
-func ErrorDatabaseNotFound(queryError error) (int, error) {
+func ErrorDatabaseDynamic(queryError error, message DatabaseDynamicMessage) (int, error) {
 	isNotFound := errors.Is(queryError, gorm.ErrRecordNotFound)
 
 	var statusCode int
 
 	if isNotFound {
 		statusCode = http.StatusNotFound
+		if message.NotFound != "" {
+			queryError = errors.New(message.NotFound)
+		}
 	} else if queryError != nil {
 		statusCode = http.StatusInternalServerError
 	} else {
 		statusCode = http.StatusOK
+	}
+
+	// Check if user activating the authentication identifier
+	if message.NeedAuthentication {
+		statusCode = http.StatusUnauthorized
 	}
 
 	return statusCode, queryError
